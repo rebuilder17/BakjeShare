@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Threading;
 using System.Diagnostics;
+using System.Web;
 
 namespace BakjeShareServer.Http
 {
@@ -28,6 +29,8 @@ namespace BakjeShareServer.Http
 
 		Queue<HttpListenerContext>	m_contextQueue;			// 요청의 context 큐
 
+		Dictionary<string, Action<HttpListenerContext>>		m_contextProcessDict;	// 각 하위 주소에 맵핑되는 프로세스 처리 델리게이트 딕셔너리
+
 
 		public Server()
 		{
@@ -39,6 +42,8 @@ namespace BakjeShareServer.Http
 			m_contextQueue	= new Queue<HttpListenerContext>();
 			m_listener		= new HttpListener();
 			m_threadListener	= new Thread(DoHandleRequest);
+
+			m_contextProcessDict	= new Dictionary<string, Action<HttpListenerContext>>();
 		}
 		
 		/// <summary>
@@ -144,33 +149,63 @@ namespace BakjeShareServer.Http
 
 					if (context != null)				// 요청 처리하기
 					{
-						// TODO : 여기에 진짜 요청 처리 코드 넣기
-
-						var request		= context.Request;
-						var response	= context.Response;
-
-						Console.Out.WriteLine("request received : " + request.Url.OriginalString);
-						var segments	= request.Url.Segments;
-						if (segments.Length > 0)
+						try
 						{
-							Console.Out.WriteLine("Segments are : ");
-							foreach (var seg in segments)
+							var suburl	= string.Join("", context.Request.Url.Segments);
+							if (suburl[suburl.Length - 1] != '/')
+								suburl += '/';
+
+							Action<HttpListenerContext>	del;
+							if (m_contextProcessDict.TryGetValue(suburl, out del))
 							{
-								Console.Out.WriteLine(seg);
+								del(context);
+							}
+							else
+							{								// 등록되지 않은 경우, 404 에러
+								SendHttpStatusPage(context.Response, HttpStatusCode.NotFound);
 							}
 						}
-						
-						response.StatusCode			= 200;
-						response.ContentType		= "text/plain";
-						response.ContentEncoding	= Encoding.UTF8;
-						var buffer					= Encoding.UTF8.GetBytes("Hello!");
-						response.ContentLength64	= buffer.Length;
-						response.OutputStream.Write(buffer, 0, buffer.Length);
-						response.OutputStream.Close();
-						
+						catch (Exception e)				// 에러가 발생하면 500 에러
+						{
+							SendHttpStatusPage(context.Response, HttpStatusCode.InternalServerError);
+							Console.Error.WriteLine(e.ToString());
+						}
 					}
 				}
 			}
+		}
+
+		/// <summary>
+		/// 하위 URL에 컨텍스트 처리 함수를 맵핑한다. 각 함수는 별도 쓰레드에서 작동해도 thread-safe를 보장해야 한다.
+		/// </summary>
+		/// <param name="suburl">하위 url. /.../ 형식이어야한다. ( / 으로 둘러싸여야함)</param>
+		/// <param name="del"></param>
+		public void RegisterContextProcessor(string suburl, Action<HttpListenerContext> del)
+		{
+			if (suburl[0] != '/' || suburl[suburl.Length - 1] != '/')
+			{
+				throw new ArgumentException();
+			}
+
+			m_contextProcessDict[suburl]	= del;
+		}
+
+		static void SendHttpStatusPage(HttpListenerResponse response, HttpStatusCode code)
+		{
+			response.StatusCode	= (int)code;
+			var message			= HttpWorkerRequest.GetStatusDescription(response.StatusCode);
+			response.StatusDescription	= message;
+
+			var page			= string.Format("<!DOCTYPE html><html><head><title>{0}</title></head><body><h1>{1} - {0}</h1></body></html>", message, response.StatusCode);
+			var buffer			= Encoding.UTF8.GetBytes(page);
+
+			response.ContentEncoding	= Encoding.UTF8;
+			response.ContentLength64	= buffer.Length;
+			response.ContentType		= "text/html";
+			response.OutputStream.Write(buffer, 0, buffer.Length);
+			response.Close();
+
+			response.Close();
 		}
 	}
 }
