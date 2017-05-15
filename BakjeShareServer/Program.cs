@@ -10,8 +10,15 @@ namespace BakjeShareServer
 	{
 		static void Main(string[] args)
 		{
-			// Server Test
+			//BasicServerTest();
+			BasicPacketTest();
+		}
 
+		/// <summary>
+		/// Basic Server Test
+		/// </summary>
+		static void BasicServerTest()
+		{
 			var server	= new Http.Server();
 
 			server.RegisterContextProcessor("/", (context) =>
@@ -47,6 +54,23 @@ namespace BakjeShareServer
 			Console.ReadKey();
 
 			server.Stop();
+		}
+
+		static void BasicPacketTest()
+		{
+			var packToSend	= new BakjeProtocol.Packet();
+			packToSend.SetPlainText("this is plain text");
+			packToSend.AddBinaryData(BitConverter.GetBytes(12345));
+
+			var packetData	= packToSend.Pack();
+			//
+
+			var packRecv	= BakjeProtocol.Packet.Unpack(packetData);
+
+			Console.Out.WriteLine("packet plain text : {0}", packRecv.GetPlainText());
+			Console.Out.WriteLine("packet data : {0}", BitConverter.ToInt32(packRecv.GetBinaryData(0), 0));
+
+			Console.ReadKey();
 		}
 	}
 }
