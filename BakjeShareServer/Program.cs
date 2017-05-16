@@ -59,6 +59,8 @@ namespace BakjeShareServer
 		static void BasicPacketTest()
 		{
 			var packToSend	= new BakjeProtocol.Packet();
+			packToSend.header.messageType	= "test";
+			packToSend.header.authKey		= null;
 			packToSend.SetPlainText("this is plain text");
 			packToSend.AddBinaryData(BitConverter.GetBytes(12345));
 
@@ -67,6 +69,8 @@ namespace BakjeShareServer
 
 			var packRecv	= BakjeProtocol.Packet.Unpack(packetData);
 
+			Console.Out.WriteLine("header.messageType : {0}", packRecv.header.messageType);
+			Console.Out.WriteLine("header.authKey : {0}", packRecv.header.authKey);
 			Console.Out.WriteLine("packet plain text : {0}", packRecv.GetPlainText());
 			Console.Out.WriteLine("packet data : {0}", BitConverter.ToInt32(packRecv.GetBinaryData(0), 0));
 
