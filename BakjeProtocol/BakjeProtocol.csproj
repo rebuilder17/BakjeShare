@@ -42,7 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Packet.cs" />
-    <Compile Include="ProcedurePool.cs" />
+    <Compile Include="Procedure\BaseProcedurePool.cs" />
+    <Compile Include="Procedure\ClientProcedurePool.cs" />
+    <Compile Include="Procedure\ServerProcedurePool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

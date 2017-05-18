@@ -70,10 +70,16 @@ namespace BakjeProtocol
 			return m_plainText;
 		}
 
-		public T GetJSONData<T>()
+		public object GetJSONData(Type type)
 		{
 			var json	= new JavaScriptSerializer();
-			return json.Deserialize<T>(m_plainText);
+			return json.Deserialize(m_plainText, type);
+		}
+
+		public T GetJSONData<T>()
+			where T : class
+		{
+			return GetJSONData(typeof(T)) as T;
 		}
 
 		/// <summary>
