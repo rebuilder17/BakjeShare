@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BakjeProtocol.Procedure
+namespace BakjeProtocol
 {
 	public class ClientProcedurePool : BaseProcedurePool
 	{
@@ -13,6 +13,10 @@ namespace BakjeProtocol.Procedure
 		string			m_expectedRecvMsgType;				// 받아야할 recv 메세지 타입, 이것과 어긋나면 뭔가 잘못된 것
 		Action<object>	m_recvCallback;						// 다음에 1회 호출할 콜백
 
+		public ClientProcedurePool()
+		{
+			m_sendRecvMsgTypePair	= new Dictionary<string, string>();
+		}
 
 		/// <summary>
 		/// 전송하고 받을 메세지/파라미터 타입을 추가한다.
@@ -38,10 +42,12 @@ namespace BakjeProtocol.Procedure
 			
 			if (m_expectedRecvMsgType != typeStr)			// 기대하던 콜백 타입이 안들어왔으면 exception
 			{
+				var exceptionMsg		= string.Format("expeced messageType is {0}, but received {1}", m_expectedRecvMsgType, typeStr);
+				
 				m_expectedRecvMsgType	= null;
 				m_recvCallback			= null;
 
-				throw new Exception(string.Format("expeced messageType is {0}, but received {1}", m_expectedRecvMsgType, typeStr));
+				throw new Exception(exceptionMsg);
 			}
 
 			var cb					= m_recvCallback;		// 보관하고 있던 콜백 타입을 리턴하고, 레퍼런스는 해제
@@ -61,6 +67,11 @@ namespace BakjeProtocol.Procedure
 		/// <param name="recvProc"></param>
 		public void DoRequest<SendParamT, RecvParamT>(string sendTypeStr, Action<ISend<SendParamT>> sendProc, Action<IReceive<RecvParamT>> recvProc)
 		{
+			if (m_recvCallback != null)
+			{
+				throw new InvalidOperationException("Previous request not resolved");
+			}
+
 			m_expectedRecvMsgType	= m_sendRecvMsgTypePair[sendTypeStr];							// 응답 돌아올 때의 메세지 타입을 지정
 			m_recvCallback			= (recvobj) => recvProc(recvobj as IReceive<RecvParamT>);		// 응답 돌아올 때의 콜백 설정
 

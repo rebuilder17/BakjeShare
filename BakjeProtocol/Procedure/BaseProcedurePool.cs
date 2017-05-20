@@ -28,7 +28,7 @@ namespace BakjeProtocol
 			/// ProcedurePool 이 해당 패킷을 받도록 한다.
 			/// </summary>
 			/// <param name="packet"></param>
-			void CallReceive(Packet packet);
+			void CallReceive(Packet packet, Action<Packet> responseDel = null);
 
 			/// <summary>
 			/// ProcedurePool 에서 보내려는 패킷을 처리할 델리게이트를 지정
@@ -40,11 +40,20 @@ namespace BakjeProtocol
 		/// <summary>
 		/// 전송받은 내용
 		/// </summary>
-		public interface IReceive<T>
+		public interface IReceive<T> : IReceive
+		{
+			T				param { get; }
+		}
+
+		/// <summary>
+		/// 전송받은 내용
+		/// </summary>
+		public interface IReceive
 		{
 			Packet.Header	header { get; }
-			T				param { get; }
-			int binaryDataCount { get; }
+			int				binaryDataCount { get; }
+			Action<Packet>	responseCallback { get; set; }
+
 			byte[] GetBinaryData(int index);
 		}
 
@@ -62,6 +71,8 @@ namespace BakjeProtocol
 		public interface ISend
 		{
 			Packet.Header	header { get; }
+			//Action<Packet>	responseCallback { get; set; }
+
 			void AddBinaryData(byte[] data);
 		}
 		//
@@ -76,9 +87,9 @@ namespace BakjeProtocol
 				m_parent	= parent;
 			}
 
-			public void CallReceive(Packet packet)
+			public void CallReceive(Packet packet, Action<Packet> responseDel = null)
 			{
-				m_parent.ProcessReceivePacket(packet);
+				m_parent.ProcessReceivePacket(packet, responseDel);
 			}
 
 			public void SetSendDelegate(Action<Packet> sendDel)
@@ -92,20 +103,15 @@ namespace BakjeProtocol
 			}
 		}
 
-		private class Receive<T> : IReceive<T>
-			where T : class
+		private class ReceiveGeneral : IReceive
 		{
 			Packet		m_packet;
-			T			m_param;
+
+			public Action<Packet>	responseCallback { get; set; }
 
 			public Packet.Header header
 			{
 				get { return m_packet.header; }
-			}
-
-			public T param
-			{
-				get { return m_param; }
 			}
 
 			public int binaryDataCount
@@ -118,9 +124,24 @@ namespace BakjeProtocol
 				return m_packet.GetBinaryData(index);
 			}
 
-			public Receive(Packet packet)
+			public ReceiveGeneral(Packet packet)
 			{
 				m_packet	= packet;
+			}
+		}
+
+		private class Receive<T> : ReceiveGeneral, IReceive<T>
+			where T : class
+		{
+			T			m_param;
+
+			public T param
+			{
+				get { return m_param; }
+			}
+
+			public Receive(Packet packet) : base(packet)
+			{
 				m_param		= packet.GetJSONData<T>();
 			}
 		}
@@ -128,6 +149,8 @@ namespace BakjeProtocol
 		private abstract class SendGeneral : ISend
 		{
 			protected Packet		m_packet;
+
+			//public Action<Packet>	responseCallback { get; set; }
 
 			public Packet.Header header
 			{
@@ -167,8 +190,8 @@ namespace BakjeProtocol
 			public string typeStr;		// 패킷 헤더에 포함되는 메세지 문자열
 			public Type paramType;		// 매칭되는 패킷 파라미터 타입
 
-			public Func<Packet, object> funcMakeRecv;	// IReceive<T> 오브젝트를 만드는 함수
-			public Func<object> funcMakeSend;	// ISend<T> 오브젝트를 만드는 함수
+			public Func<Packet, ReceiveGeneral> funcMakeRecv;	// IReceive<T> 오브젝트를 만드는 함수
+			public Func<SendGeneral> funcMakeSend;				// ISend<T> 오브젝트를 만드는 함수
 		}
 
 
@@ -337,7 +360,7 @@ namespace BakjeProtocol
 		/// PoolController에서 Receive 들어올 때 호출한다.
 		/// </summary>
 		/// <param name="packet"></param>
-		private void ProcessReceivePacket(Packet packet)
+		private void ProcessReceivePacket(Packet packet, Action<Packet> responseDel = null)
 		{
 			if (!started)					// 시작한 경우에만 실행한다.
 				return;
@@ -345,8 +368,9 @@ namespace BakjeProtocol
 			var messageType	= packet.header.messageType;
 			var typeInfo	= LookupMessageType(messageType);		// 타입 정보 가져오기
 			var recvObj		= typeInfo.funcMakeRecv(packet);		// 타입에 맞게 IReceive오브젝트 생성
+			recvObj.responseCallback = responseDel;					// responseDel을 지정한 경우 세팅
 
-			var recvfunc	= LookupRecvCallback(messageType);		// recv 처리 함수 찾기
+			var recvfunc	= LookupRecvCallback(recvObj.header.messageType);	// recv 처리 함수 찾기
 			recvfunc(recvObj);
 		}
 
@@ -355,18 +379,29 @@ namespace BakjeProtocol
 		/// </summary>
 		/// <param name="typeStr"></param>
 		/// <param name="procfunc"></param>
-		protected void DoProcessSendPacket(string typeStr, Action<object> procfunc)
+		//protected void DoProcessSendPacket(string typeStr, Action<object> procfunc, Action<Packet> sendDel = null, Action<Packet> responseDel = null)
+		protected void DoProcessSendPacket(string typeStr, Action<object> procfunc, Action<Packet> sendDel = null)
 		{
 			if (!started)					// 시작한 경우에만 실행한다.
 				return;
 			
 			var typeInfo	= LookupMessageType(typeStr);			// 타입 정보 가져오기
 			var sendObj		= typeInfo.funcMakeSend();				// 타입에 맞는 ISend 오브젝트 생성
+			//sendObj.responseCallback	= responseDel;				// 응답 받을 델리게이트를 지정했다면 세팅
+			sendObj.header.messageType	= typeStr;					// 메세지 타입 헤더에 넣기
 
 			procfunc(sendObj);										// 패킷 처리 함수 실행 (패킷 내용을 채운다)
 
-			var packet	= (sendObj as SendGeneral).packet;
-			m_poolCtrl.CallSend(packet);							// 외부에서 지정한 콜백으로 패킷을 넘긴다
+			var packet	= sendObj.packet;
+
+			if (sendDel != null)									// 미리 지정한 전송 델리게이트가 있으면 그것을 사용
+			{
+				sendDel(packet);
+			}
+			else
+			{
+				m_poolCtrl.CallSend(packet);						// 외부에서 지정한 콜백으로 패킷을 넘긴다
+			}
 		}
 	}
 }

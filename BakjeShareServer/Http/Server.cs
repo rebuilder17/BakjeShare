@@ -7,11 +7,46 @@ using System.Net;
 using System.Threading;
 using System.Diagnostics;
 using System.Web;
+using BakjeProtocol;
 
 namespace BakjeShareServer.Http
 {
-	class Server
+	public class Server
 	{
+		/// <summary>
+		/// ProcedurePool에 연결하기 위한 오브젝트
+		/// </summary>
+		class ProcedurePoolBridge : BaseProcedurePool.IBridge
+		{
+			// Members
+
+			Server								m_parent;
+			BaseProcedurePool.IPoolController	m_poolCtrl;
+
+
+			public ProcedurePoolBridge(Server parent)
+			{
+				m_parent	= parent;
+			}
+
+			public void SetPoolController(BaseProcedurePool.IPoolController ctrler)
+			{
+				m_poolCtrl	= ctrler;
+			}
+
+			public void Receive(Packet packet, Action<Packet> responseDel)
+			{
+				m_poolCtrl.CallReceive(packet, responseDel);
+			}
+
+			//public void SetSendDel(Action<Packet> del)
+			//{
+			//	m_poolCtrl.SetSendDelegate(del);
+			//}
+		}
+
+
+
 		// Constants
 
 		const int		c_workerThreadCount	= 16;
@@ -184,7 +219,7 @@ namespace BakjeShareServer.Http
 		{
 			if (suburl[0] != '/' || suburl[suburl.Length - 1] != '/')
 			{
-				throw new ArgumentException();
+				throw new ArgumentException("suburl must be embraced with '/'");
 			}
 
 			m_contextProcessDict[suburl]	= del;
@@ -204,8 +239,42 @@ namespace BakjeShareServer.Http
 			response.ContentType		= "text/html";
 			response.OutputStream.Write(buffer, 0, buffer.Length);
 			response.Close();
+		}
 
-			response.Close();
+		/// <summary>
+		/// 특정 suburl으로 오는 요청을 ProcedurePool로 보내기 위한 Bridge를 생성한다.
+		/// </summary>
+		/// <param name="suburl"></param>
+		/// <returns></returns>
+		public BaseProcedurePool.IBridge CreateProcedurePoolBridge(string suburl)
+		{
+			var bridge	= new ProcedurePoolBridge(this);
+			RegisterContextProcessor(suburl, (context) =>			// 해당 브릿지로 receive를 보내도록 설정
+			{
+				// 요청 데이터를 읽는다. (application/octet-stream)
+				var req		= context.Request;
+				if (req.ContentType != "application/octet-stream")
+					throw new Exception(string.Format("content type is not octet-stream : {0}", req.ContentType));
+				var length	= req.ContentLength64;
+				var buffer	= new byte[length];
+				req.InputStream.Read(buffer, 0, (int)length);
+
+				var packet	= Packet.Unpack(buffer);					// Packet으로 만들기
+
+				bridge.Receive(packet, (responsePacket) =>				// 브릿지 통해서 보내기. context를 유지해야하므로 별도로 response Delegate를 지정한다.
+				{
+					var respbuffer			= responsePacket.Pack();	// 바이너리 데이터로 변환
+
+					var resp				= context.Response;
+					resp.StatusCode			= (int)HttpStatusCode.OK;
+					resp.ContentType		= "application/octet-stream";
+					resp.ContentLength64	= respbuffer.Length;
+					resp.OutputStream.Write(respbuffer, 0, respbuffer.Length);	// 바이너리 패킷 정보 전송
+					resp.Close();
+				});
+			});
+			
+			return bridge;
 		}
 	}
 }

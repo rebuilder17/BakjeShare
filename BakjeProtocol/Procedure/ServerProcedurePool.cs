@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BakjeProtocol.Procedure
+namespace BakjeProtocol
 {
 	/// <summary>
 	/// 서버측에서 사용하는 ProcedurePool 구현
@@ -31,7 +31,9 @@ namespace BakjeProtocol.Procedure
 				DoProcessSendPacket(sendTypeStr, (sendobj) =>			// 지정한 익명 함수를 실행한 뒤 바로 전송을 개시한다.
 				{
 					procedure(recvobj, sendobj as ISend<SendParamT>);	// 파라미터로 지정한 프로시저를 실행한 뒤 바로 전송하게 한다...
-				});
+				},
+				recvobj.responseCallback								// 따로 설정한 response 델리게이트가 있으면 지정한다.
+				);
 			});
 		}
 	}
