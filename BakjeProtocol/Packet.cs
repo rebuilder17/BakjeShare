@@ -17,8 +17,17 @@ namespace BakjeProtocol
 		/// </summary>
 		public class Header
 		{
+			public enum Code
+			{
+				OK					= 0,
+				AuthNeeded,
+				ClientSideError,
+				ServerSideError,
+			}
+
 			public string		messageType;		// 메세지 종류
 			public string		authKey;			// 사용자 인증 키 (cookie)
+			public Code			code;				// 일반적인 메세지 처리 코드
 		}
 
 

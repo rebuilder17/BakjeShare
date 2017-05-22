@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 using BakjeProtocol;
+using BakjeProtocol.Auth;
 using System.Threading;
 
 namespace BakjeShareServer
@@ -85,6 +86,18 @@ namespace BakjeShareServer
 		{
 		}
 
+		class TestLoginParam
+		{
+			public string userid;
+			public string password;
+		}
+
+		class TestAuthResponseParam
+		{
+			public string authKey;
+			public UserType userType;
+		}
+
 		class TestMessageParam1
 		{
 			public string message;
@@ -109,17 +122,42 @@ namespace BakjeShareServer
 				}
 			}
 
+			class TestAuthClient : BaseAuthClient
+			{
+				protected override void ClearLocalAuthToken()
+				{
+					
+				}
+
+				protected override void LoadLocalAuthToken(out string authKey, out UserType userType)
+				{
+					authKey		= null;
+					userType	= UserType.Guest;
+				}
+
+				protected override void SaveLocalAuthToken()
+				{
+					
+				}
+			}
+
 			ClientProcedurePool m_procPool;
 			TestClientBridge	m_bridge;
+			TestAuthClient		m_authClient;
 
 			public TestClient()
 			{
 				m_procPool	= new ClientProcedurePool();
 				m_procPool.AddPairParamType<TestSimpleMessageParam, TestMessageParam1>("TestRequest1", "RespToReq1");
 				m_procPool.AddPairParamType<TestSimpleMessageParam, TestMessageParam2>("TestRequest2", "RespToReq2");
-
+				m_procPool.AddPairParamType<TestLoginParam, TestAuthResponseParam>("TestLogin", "RespToLogin");
+				
 				m_bridge	= new TestClientBridge();
 				m_procPool.SetBridge(m_bridge);
+
+				m_authClient	= new TestAuthClient();
+				m_procPool.SetAuthClientObject(m_authClient);
+				
 
 				m_bridge.m_poolCtrl.SetSendDelegate((packet) =>
 				{
@@ -149,6 +187,29 @@ namespace BakjeShareServer
 				m_procPool.Start();
 			}
 
+			public void SendLoginRequest(string userid, string password)
+			{
+				m_procPool.DoRequest<TestLoginParam, TestAuthResponseParam>("TestLogin", (sendObj) =>
+					{
+						sendObj.SetParameter(new TestLoginParam() { userid = userid, password = password });
+					},
+					(recvObj) =>
+					{
+						if (recvObj.header.code == Packet.Header.Code.OK)
+						{
+							var key	= recvObj.param.authKey;
+							var ut	= recvObj.param.userType;
+							m_authClient.SetNew(key, ut);
+
+							Console.Out.WriteLine("login success - auth key : " + key);
+						}
+						else
+						{
+							Console.Out.WriteLine("login failed, continue with guest auth level");
+						}
+					});
+			}
+
 			public void SendRequest1()
 			{
 				m_procPool.DoRequest<TestSimpleMessageParam, TestMessageParam1>("TestRequest1",
@@ -158,7 +219,14 @@ namespace BakjeShareServer
 					},
 					(recvObj) =>
 					{
-						Console.Out.WriteLine("response 1 - message : {0}, data : {1}", recvObj.param.message, recvObj.param.data);
+						if (recvObj.header.code == Packet.Header.Code.AuthNeeded)
+						{
+							Console.Out.WriteLine("response 1 - auth needed");
+						}
+						else
+						{
+							Console.Out.WriteLine("response 1 - message : {0}, data : {1}", recvObj.param.message, recvObj.param.data);
+						}
 					});
 			}
 
@@ -171,12 +239,86 @@ namespace BakjeShareServer
 					},
 					(recvObj) =>
 					{
-						string arrayStr = "";
-						foreach (var i in recvObj.param.array)
-							arrayStr += i + " ";
+						if (recvObj.header.code == Packet.Header.Code.AuthNeeded)
+						{
+							Console.Out.WriteLine("response 2 - auth needed");
+						}
+						else
+						{
+							string arrayStr = "";
+							foreach (var i in recvObj.param.array)
+								arrayStr += i + " ";
 
-						Console.Out.WriteLine("response 2 - message : {0}, data : {1}", recvObj.param.message, arrayStr);
+							Console.Out.WriteLine("response 2 - message : {0}, data : {1}", recvObj.param.message, arrayStr);
+						}
 					});
+			}
+		}
+
+		class TestAuthServer : BaseAuthServer
+		{
+			class Entry
+			{
+				public string userid;
+				public string authkey;
+				public UserType usertype;
+			}
+
+			List<Entry> m_testdb;
+
+			public TestAuthServer()
+			{
+				m_testdb	= new List<Entry>();
+			}
+
+
+			protected override string GenerateAuthKey(string userid)
+			{
+				return userid + ":" + DateTime.Now.ToString();
+			}
+
+			protected override string QueryAuthKey(string userid)
+			{
+				foreach (var entry in m_testdb)
+				{
+					if (entry.userid == userid)
+						return entry.authkey;
+				}
+				return null;
+			}
+
+			protected override void QuerySetAuthInfo(string userid, string authkey, UserType usertype)
+			{
+				foreach(var entry in m_testdb)
+				{
+					if (entry.userid == userid)
+					{
+						entry.authkey	= authkey;
+						entry.usertype	= usertype;
+						return;
+					}
+				}
+				m_testdb.Add(new Entry() { userid = userid, authkey = authkey, usertype = usertype });
+			}
+
+			protected override string QueryUserID(string authkey)
+			{
+				foreach (var entry in m_testdb)
+				{
+					if (entry.authkey == authkey)
+						return entry.userid;
+				}
+				return null;
+			}
+
+			protected override UserType QueryUserType(string userid)
+			{
+				foreach (var entry in m_testdb)
+				{
+					if (entry.userid == userid)
+						return entry.usertype;
+				}
+				return UserType.Guest;
 			}
 		}
 
@@ -187,9 +329,31 @@ namespace BakjeShareServer
 			var server		= new Http.Server();
 			var bridge		= server.CreateProcedurePoolBridge("/test/");
 			var procpool	= new ServerProcedurePool();
+			var authserver	= new TestAuthServer();
 			procpool.SetBridge(bridge);
+			procpool.SetAuthServerObj(authserver);
 
-			procpool.AddProcedure<TestSimpleMessageParam, TestMessageParam1>("TestRequest1", "RespToReq1", (recvObj, sendObj) =>
+			procpool.AddProcedure<TestLoginParam, TestAuthResponseParam>("TestLogin", "RespToLogin", UserType.Guest, (recvObj, sendObj) =>
+			{
+				var param	= recvObj.param;
+				var newauth	= (string)null;
+				var usertype= UserType.Guest;
+				if (param.userid == "user" && param.password == "userpass")
+				{
+					usertype	= UserType.Registered;
+					newauth		= authserver.SetupNewAuthKey(param.userid, usertype);
+				}
+				else if (param.userid == "admin" && param.password == "adminpass")
+				{
+					usertype	= UserType.Administrator;
+					newauth		= authserver.SetupNewAuthKey(param.userid, usertype);
+				}
+
+				sendObj.SetParameter(new TestAuthResponseParam() { authKey = newauth, userType = usertype });
+				sendObj.header.code		= (newauth == null) ? Packet.Header.Code.ClientSideError : Packet.Header.Code.OK;
+			});
+
+			procpool.AddProcedure<TestSimpleMessageParam, TestMessageParam1>("TestRequest1", "RespToReq1", UserType.Registered, (recvObj, sendObj) =>
 			{
 				sendObj.SetParameter(new TestMessageParam1()
 				{
@@ -198,7 +362,7 @@ namespace BakjeShareServer
 				});
 			});
 
-			procpool.AddProcedure<TestSimpleMessageParam, TestMessageParam2>("TestRequest2", "RespToReq2", (recvObj, sendObj) =>
+			procpool.AddProcedure<TestSimpleMessageParam, TestMessageParam2>("TestRequest2", "RespToReq2", UserType.Administrator, (recvObj, sendObj) =>
 			{
 				var randomArray	= new int[10];
 				for (var i = 0; i < 10; i++)
@@ -217,6 +381,12 @@ namespace BakjeShareServer
 			Thread.Sleep(1000);
 
 			var client	= new TestClient();
+			client.SendLoginRequest("user", "userpass");
+			//client.SendLoginRequest("admin", "adminpass");
+			//client.SendLoginRequest("admin", "aaaaasssssdddd");
+
+			Thread.Sleep(1000);
+			
 			client.SendRequest1();
 
 			Thread.Sleep(1000);

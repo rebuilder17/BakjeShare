@@ -11,12 +11,23 @@ namespace BakjeProtocol
 	/// </summary>
 	public class ServerProcedurePool : BaseProcedurePool
 	{
+		// Members
+
+		Auth.BaseAuthServer	m_authServer;
+
+		
+		public void SetAuthServerObj(Auth.BaseAuthServer authserver)
+		{
+			m_authServer	= authserver;
+		}
+		
 		/// <summary>
 		/// 프로시저 추가
 		/// </summary>
 		/// <param name="typeStr"></param>
 		/// <param name="procedue"></param>
-		public void AddProcedure<RecvParamT, SendParamT>(string recvTypeStr, string sendTypeStr, Action<IReceive<RecvParamT>, ISend<SendParamT>> procedure)
+		public void AddProcedure<RecvParamT, SendParamT>(string recvTypeStr, string sendTypeStr, Auth.UserType authLevel,
+															Action<IReceive<RecvParamT>, ISend<SendParamT>> procedure)
 			where RecvParamT : class
 			where SendParamT : class
 		{
@@ -30,7 +41,15 @@ namespace BakjeProtocol
 			{
 				DoProcessSendPacket(sendTypeStr, (sendobj) =>			// 지정한 익명 함수를 실행한 뒤 바로 전송을 개시한다.
 				{
-					procedure(recvobj, sendobj as ISend<SendParamT>);	// 파라미터로 지정한 프로시저를 실행한 뒤 바로 전송하게 한다...
+					var userid	= m_authServer.GetUserIDFromAuthKey(recvobj.header.authKey);	// authkey로 유저 id를 조회해본다.
+					if (m_authServer.GetUserAuthType(userid) < authLevel)						// 해당 유저의 권한 레벨이 모자라면, 에러 코드를 부여해서 보내기
+					{
+						(sendobj as ISend<SendParamT>).header.code	= Packet.Header.Code.AuthNeeded;
+					}
+					else
+					{
+						procedure(recvobj, sendobj as ISend<SendParamT>);	// 파라미터로 지정한 프로시저를 실행한 뒤 바로 전송하게 한다...
+					}
 				},
 				recvobj.responseCallback								// 따로 설정한 response 델리게이트가 있으면 지정한다.
 				);
