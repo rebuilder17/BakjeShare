@@ -54,8 +54,7 @@ namespace BakjeShareServer.SQL
 
 
 		string		m_connectionString;
-
-
+		
 		/// <summary>
 		/// SQL 연결 문자열을 설정한다.
 		/// </summary>

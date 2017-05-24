@@ -16,7 +16,68 @@ namespace BakjeShareServer
 		{
 			//BasicServerTest();
 			//BasicPacketTest();
-			BakjeServerTest();
+			//BakjeServerTest();
+			BakjeSQLTest();
+		}
+
+		static void BakjeSQLTest()
+		{
+			var sql	= new SQL.SQLHelper();
+			sql.SetupConnectionString("localhost", "bakjeserver", "bakje1234", "bakjedb");
+			System.Action runSelect = () =>
+				sql.RunSqlSession((bridge) =>
+				{
+					var cmd			= bridge.CreateCommand();
+					cmd.CommandText	= "select iduser, email from user";
+					var reader		= cmd.ExecuteReader();
+
+					while (reader.Read())
+					{
+						Console.Out.WriteLine("{0} - {1}", reader.GetString("iduser"), reader.GetString("email"));
+					}
+					reader.Close();
+				});
+
+			runSelect();
+
+			try
+			{
+				sql.RunSqlSessionWithTransaction((bridge) =>
+				{
+					var cmd			= bridge.CreateCommand();
+					cmd.CommandText	= "insert into user(iduser, password, email, is_admin, is_blinded) values(@id, @pass, @email, false, false)";
+					var param		= cmd.Parameters;
+					param.AddWithValue("@id", "newuser1");
+					param.AddWithValue("@pass", "12345");
+					param.AddWithValue("@email", "emailto@bbb.aaa");
+
+					cmd.ExecuteNonQuery();
+
+					Console.Out.WriteLine("added some user data");
+
+					return true;	// revert
+				});
+			}
+			catch(Exception e)
+			{
+				Console.Out.WriteLine("...already added?");
+			}
+			
+			runSelect();
+
+			sql.RunSqlSession((bridge) =>
+			{
+				var cmd			= bridge.CreateCommand();
+				cmd.CommandText	= "delete from user where iduser = @id";
+				cmd.Parameters.AddWithValue("@id", "newuser1");
+
+				cmd.ExecuteNonQuery();
+
+				Console.Out.WriteLine("removed one");
+			});
+
+
+			Console.ReadKey();
 		}
 
 		/// <summary>
