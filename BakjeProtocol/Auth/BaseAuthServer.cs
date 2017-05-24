@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace BakjeProtocol.Auth
 {
@@ -30,22 +31,37 @@ namespace BakjeProtocol.Auth
 		Dictionary<string, AuthInfoCache>	m_useridToInfoCache;			// userid => auth info 캐시
 		Dictionary<string, AuthInfoCache>	m_authkeyToInfoCache;			// authkey => auth info 캐시
 
+		ManualResetEvent		m_readLock;
+		AutoResetEvent			m_writeLock;
+
 
 		public BaseAuthServer()
 		{
+			m_readLock	= new ManualResetEvent(true);
+			m_writeLock	= new AutoResetEvent(true);
+
 			m_useridToInfoCache		= new Dictionary<string, AuthInfoCache>();
 			m_authkeyToInfoCache	= new Dictionary<string, AuthInfoCache>();
 		}
 
 		private void CacheInfo(AuthInfoCache info)
 		{
+			m_readLock.Reset();								// 읽기 블락
+
+			m_writeLock.WaitOne();							// 쓰기 받고 다른 쓰기는 대기시키기
+
 			m_useridToInfoCache[info.userid]	= info;
 			m_authkeyToInfoCache[info.authkey]	= info;
+
+			m_writeLock.Set();								// 다른 쓰기 허용하기
+
+			m_readLock.Set();								// 읽기 허용
 		}
 
 		private AuthInfoCache ReadCacheByUserID(string userid)
 		{
 			AuthInfoCache cache = null;
+			m_readLock.WaitOne();							// 읽기 대기하기
 			m_useridToInfoCache.TryGetValue(userid, out cache);
 			return cache;
 		}
@@ -53,6 +69,7 @@ namespace BakjeProtocol.Auth
 		private AuthInfoCache ReadCacheByAuthKey(string authkey)
 		{
 			AuthInfoCache cache = null;
+			m_readLock.WaitOne();							// 읽기 대기하기
 			m_authkeyToInfoCache.TryGetValue(authkey, out cache);
 			return cache;
 		}
