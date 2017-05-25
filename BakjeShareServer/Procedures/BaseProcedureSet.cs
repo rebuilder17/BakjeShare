@@ -23,6 +23,8 @@ namespace BakjeShareServer.Procedures
 			this.authServer	= authServer;
 
 			Initialize();
+
+			procedurePool.Start();
 		}
 
 		protected abstract void Initialize();

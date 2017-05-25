@@ -33,7 +33,11 @@ namespace BakjeShareServer.SQL
 			var buffer		= new byte[24];
 			Buffer.BlockCopy(BitConverter.GetBytes(keyGenCount), 0, buffer, 0, 4);
 			Buffer.BlockCopy(BitConverter.GetBytes(curTime), 0, buffer, 4, 8);
-			Buffer.BlockCopy(Encoding.ASCII.GetBytes(userid), 0, buffer, 12, 12);
+
+			var idbytes		= Encoding.ASCII.GetBytes(userid);				// 최대 12바이트까지
+			var idlenlimit	= 12;
+			var idlen		= idbytes.Length > idlenlimit? idlenlimit : idbytes.Length;
+			Buffer.BlockCopy(idbytes, 0, buffer, 12, idlen);
 			
 			return Convert.ToBase64String(buffer);
 		}

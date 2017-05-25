@@ -45,4 +45,29 @@ namespace BakjeProtocol.Parameters
 
 		public Status			status;
 	}
+
+	/// <summary>
+	/// 계정 생성 요청
+	/// </summary>
+	public class ReqNewUser
+	{
+		public string	userid;
+		public string	password;
+		public string	email;
+	}
+
+	/// <summary>
+	/// 계정 생성 요청 응답
+	/// </summary>
+	public class RespNewUser
+	{
+		public enum Status
+		{
+			OK				= 0,
+			DuplicatedID,
+			AlreadyRegisteredEmail,
+		}
+
+		public Status		status;
+	}
 }
