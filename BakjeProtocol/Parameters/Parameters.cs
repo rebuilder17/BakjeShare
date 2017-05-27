@@ -77,12 +77,11 @@ namespace BakjeProtocol.Parameters
 	/// </summary>
 	public class ReqLookupPosting
 	{
-		public string		keyword;
-		public bool			search_tag		= true;
-		public bool			search_title	= true;
-		public bool			search_desc		= true;
-		public bool			search_user		= true;
-
+		public string []	keyword_title;
+		public string []	keyword_desc;
+		public string	 	keyword_tag;
+		public string		keyword_user;
+		
 		public int			page			= 0;
 		public int			rowPerPage		= 20;
 	}
@@ -97,6 +96,10 @@ namespace BakjeProtocol.Parameters
 			public int		postID;
 			public string	author;
 			public string	title;
+
+			public DateTime	postingTime;
+			public bool		isPrivate;
+			public bool		isBlinded;
 		}
 
 		public Entry[]		entries;
@@ -122,6 +125,10 @@ namespace BakjeProtocol.Parameters
 		public string title;
 		public string desc;
 
+		public string sourceURL;
+		public DateTime datetime;
+		public bool isPrivate;
+
 		public string[] mytags;
 		public string[] othertags;
 
@@ -135,6 +142,8 @@ namespace BakjeProtocol.Parameters
 	{
 		public string		title;
 		public string		desc;
+		public string		sourceURL;
+		public bool			isPrivate;
 
 		// NOTE : 캡쳐 업로드는 별도 데이터 필드로
 		// 태그 추가는 직접 해당 페이지에 들어가서 하도록
@@ -143,7 +152,73 @@ namespace BakjeProtocol.Parameters
 	/// <summary>
 	/// 포스팅 업로드/수정에 대한 응답
 	/// </summary>
-	public class RespPosingModify
+	public class RespPostingModify
+	{
+		public enum Status
+		{
+			OK,
+		}
+
+		public Status		status;
+	}
+
+	/// <summary>
+	/// 포스팅 삭제 요청
+	/// </summary>
+	public class ReqDeletePosting
+	{
+		public int			postID;
+	}
+
+	/// <summary>
+	/// 포스팅 삭제 응답
+	/// </summary>
+	public class RespDeletePosting
+	{
+		public enum Status
+		{
+			OK,
+		}
+
+		public Status		status;
+	}
+
+	/// <summary>
+	/// 태그 추가 요청
+	/// </summary>
+	public class ReqAddTag
+	{
+		public int			postID;
+		public string		tagname;
+	}
+
+	/// <summary>
+	/// 태그 추가 응답
+	/// </summary>
+	public class RespAddTag
+	{
+		public enum Status
+		{
+			OK,
+			Duplicated,
+		}
+
+		public Status		status;
+	}
+
+	/// <summary>
+	/// 태그 제거 요청
+	/// </summary>
+	public class ReqDeleteTag
+	{
+		public int		postID;
+		public string	tagname;
+	}
+
+	/// <summary>
+	/// 태그 제거 응답
+	/// </summary>
+	public class RespDeleteTag
 	{
 		public enum Status
 		{

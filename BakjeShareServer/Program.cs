@@ -74,28 +74,46 @@ namespace BakjeShareServer
 				}
 			}
 
-			ClientProcedurePool m_authPP;
-			TestClientBridge	m_authPPbridge;
 			TestAuthClient		m_authClient;
+
+			ClientProcedurePool m_authPP;
+			ClientProcedurePool	m_postPP;
+			
+
 
 			public TestClient()
 			{
+				m_authClient	= new TestAuthClient();
+
 				m_authPP		= new ClientProcedurePool();
 				m_authPP.AddPairParamType<ReqLogin, RespLogin>("ReqLogin", "RespLogin");
 				m_authPP.AddPairParamType<EmptyParam, EmptyParam>("ReqCheckAuth", "RespCheckAuth");
 				m_authPP.AddPairParamType<ReqNewUser, RespNewUser>("ReqNewUser", "RespNewUser");
 				m_authPP.AddPairParamType<EmptyParam, EmptyParam>("ReqDeleteUser", "RespDeleteUser");
 
-				m_authPPbridge	= new TestClientBridge();
-				m_authPP.SetBridge(m_authPPbridge);
-
-				m_authClient	= new TestAuthClient();
+				var authBridge	= new TestClientBridge();
+				m_authPP.SetBridge(authBridge);
 				m_authPP.SetAuthClientObject(m_authClient);
 				
-
-				m_authPPbridge.m_poolCtrl.SetSendDelegate((packet) => PacketSend(packet, "/auth/", m_authPPbridge));
-
+				authBridge.m_poolCtrl.SetSendDelegate((packet) => PacketSend(packet, "/auth/", authBridge));
 				m_authPP.Start();
+				//
+
+				m_postPP		= new ClientProcedurePool();
+				m_postPP.AddPairParamType<ReqLookupPosting, RespLookupPosting>("ReqLookupPosting", "RespLookupPosting");
+				m_postPP.AddPairParamType<ReqShowPosting, RespShowPosting>("ReqShowPosting", "RespShowPosting");
+				m_postPP.AddPairParamType<ReqNewPosting, RespPostingModify>("ReqNewPosting", "RespNewPosting");
+				m_postPP.AddPairParamType<ReqDeletePosting, RespDeletePosting>("ReqDeletePosting", "RespDeletePosting");
+				m_postPP.AddPairParamType<ReqAddTag, RespAddTag>("ReqAddTag", "RespAddTag");
+				m_postPP.AddPairParamType<ReqDeleteTag, RespDeleteTag>("ReqDeleteTag", "RespDeleteTag");
+
+				var postBridge	= new TestClientBridge();
+				m_postPP.SetBridge(postBridge);
+				m_postPP.SetAuthClientObject(m_authClient);
+
+				postBridge.m_poolCtrl.SetSendDelegate((packet) => PacketSend(packet, "/posting/", postBridge));
+				m_postPP.Start();
+				//
 			}
 
 			static void PacketSend(Packet packet, string suburl, TestClientBridge bridge)
@@ -199,6 +217,20 @@ namespace BakjeShareServer
 					Console.Out.WriteLine("user deleted");
 					m_authClient.Clear();
 				});
+			}
+			//
+
+			public void SendNewPost(string title, string description, string sourceURL, IList<byte[]> dataList)
+			{
+				m_postPP.DoRequest<ReqNewPosting, RespPostingModify>("ReqNewPosting",
+					(send) =>
+					{
+
+					},
+					(recv) =>
+					{
+
+					});
 			}
 		}
 	}
