@@ -25,6 +25,7 @@ namespace BakjeShareServer
 			sqlHelper.SetupConnectionString("localhost", "bakjeserver", "bakje1234", "bakjedb");
 			var authserver	= new SQL.SQLAuthServer(sqlHelper);
 			var authPP		= new Procedures.Auth("/auth/", server, authserver, sqlHelper);
+			var postPP		= new Procedures.Posting("/posting/", server, authserver, sqlHelper);
 
 			server.Start();
 
@@ -32,17 +33,40 @@ namespace BakjeShareServer
 			
 			var client		= new TestClient();
 
-			client.SendCheckAuth();
-			client.SendLoginRequest("defaultuser", "blaaah");
-			client.SendCheckAuth();
-			client.SendNewuser("newuser", "pass1234", "newuser@email.com");
-			client.SendLoginRequest("newuser", "pass1234");
-			client.SendDeleteUser();
+			//client.SendCheckAuth();
+			//client.SendLoginRequest("defaultuser", "blaaah");
+			//client.SendCheckAuth();
+			//client.SendNewuser("newuser", "pass1234", "newuser@email.com");
+			//client.SendLoginRequest("newuser", "pass1234");
+			//client.SendDeleteUser();
 
+			//client.SendNewuser("user1", "user1", "user1@test.user");
+			//client.SendNewuser("user2", "user2", "user2@test.user");
+
+			//client.SendLoginRequest("user1", "user1");
+			//var postid = client.SendNewPost("test posting by user1 (01)", "테스트 포스팅입니다.", null, null);
+			//client.SendNewPost("test posting by user1 (02)", "테스트 포스팅입니다. 222222", null, null);
+			//client.SendNewPost("으아아아아아아악", "컄", null, null);
+			//client.SendAddTag(postid, "태그1");
+			//client.SendAddTag(postid, "태그2");
+			//client.SendAddTag(postid, "테스트태그");
+
+			//client.SendLoginRequest("user2", "user2");
+			//client.SendAddTag(postid, "다른유저태그");
+
+			client.SendLoginRequest("user1", "user1");
+			var postings	= client.SendLookupPosting(null, null, null, null, 0, 20);
+			foreach (var entry in postings.entries)
+			{
+				Console.Out.WriteLine("{0} : {1} by {2} (date : {3})", entry.postID, entry.title, entry.author, entry.postingTime);
+			}
+			Console.Out.WriteLine("page {0} of {1}", postings.currentPage + 1, postings.totalPage);
+			
+			Console.Out.WriteLine("any key to close...");
 			Console.ReadKey();
 			server.Stop();
 		}
-		
+
 		class TestClient
 		{
 			class TestClientBridge : BaseProcedurePool.IBridge
@@ -59,7 +83,7 @@ namespace BakjeShareServer
 			{
 				protected override void ClearLocalAuthToken()
 				{
-					
+
 				}
 
 				protected override void LoadLocalAuthToken(out string authKey, out UserType userType)
@@ -70,7 +94,7 @@ namespace BakjeShareServer
 
 				protected override void SaveLocalAuthToken()
 				{
-					
+
 				}
 			}
 
@@ -78,7 +102,7 @@ namespace BakjeShareServer
 
 			ClientProcedurePool m_authPP;
 			ClientProcedurePool	m_postPP;
-			
+
 
 
 			public TestClient()
@@ -94,7 +118,7 @@ namespace BakjeShareServer
 				var authBridge	= new TestClientBridge();
 				m_authPP.SetBridge(authBridge);
 				m_authPP.SetAuthClientObject(m_authClient);
-				
+
 				authBridge.m_poolCtrl.SetSendDelegate((packet) => PacketSend(packet, "/auth/", authBridge));
 				m_authPP.Start();
 				//
@@ -145,7 +169,7 @@ namespace BakjeShareServer
 			{
 				m_authPP.DoRequest<EmptyParam, EmptyParam>("ReqCheckAuth", (sendObj) =>
 				{
-					
+
 				},
 				(recvObj) =>
 				{
@@ -220,17 +244,98 @@ namespace BakjeShareServer
 			}
 			//
 
-			public void SendNewPost(string title, string description, string sourceURL, IList<byte[]> dataList)
+			public int SendNewPost(string title, string description, string sourceURL, IList<byte[]> dataList = null)
 			{
+				var postID	= -1;
+
 				m_postPP.DoRequest<ReqNewPosting, RespPostingModify>("ReqNewPosting",
 					(send) =>
 					{
+						send.SetParameter(new ReqNewPosting
+						{
+							title	= title,
+							desc	= description,
+							sourceURL	= sourceURL,
+						});
 
+						if (dataList != null)
+						{
+							foreach(var data in dataList)
+							{
+								send.AddBinaryData(data);
+							}
+						}
+					},
+					(recv) =>
+					{
+						postID = recv.param.postID;
+					});
+
+				return postID;
+			}
+
+			public void SendDeletePost(int postID)
+			{
+				m_postPP.DoRequest<ReqDeletePosting, RespDeletePosting>("ReqDeletePosting",
+					(send) =>
+					{
+						send.SetParameter(new ReqDeletePosting { postID = postID });
 					},
 					(recv) =>
 					{
 
 					});
+			}
+
+			public void SendAddTag(int postID, string tag)
+			{
+				m_postPP.DoRequest<ReqAddTag, RespAddTag>("ReqAddTag",
+					(send) =>
+					{
+						send.SetParameter(new ReqAddTag { postID = postID, tagname = tag });
+					},
+					(recv) =>
+					{
+
+					});
+			}
+
+			public void SendDeleteTag(int postID, string tag)
+			{
+				m_postPP.DoRequest<ReqDeleteTag, RespDeleteTag>("ReqDeleteTag",
+					(send) =>
+					{
+						send.SetParameter(new ReqDeleteTag { postID = postID, tagname = tag });
+					}, 
+					(recv) =>
+					{
+
+					});
+			}
+
+			public RespLookupPosting SendLookupPosting(string kwtitle, string kwdesc, string kwtag, string kwuser, int page = 0, int rowperpage = 20)
+			{
+				RespLookupPosting result = null;
+
+				m_postPP.DoRequest<ReqLookupPosting, RespLookupPosting>("ReqLookupPosting",
+					(send) =>
+					{
+						send.SetParameter(new ReqLookupPosting
+						{
+							keyword_title	= kwtitle?.Split(),
+							keyword_desc	= kwdesc?.Split(),
+							keyword_tag		= kwtag,
+							keyword_user	= kwuser,
+							page			= page,
+							rowPerPage		= rowperpage,
+						});
+					},
+					(recv) =>
+					{
+						result	= recv.param;
+					});
+
+				return result;
 			}
 		}
 	}

@@ -38,22 +38,23 @@ namespace BakjeShareServer.Procedures
 					var kwTag		= recv.param.keyword_tag;
 					var kwUser		= recv.param.keyword_user;
 
+					if (kwTitle == null && kwDesc == null && kwTag == null && string.IsNullOrEmpty(kwUser))	// 아무 조건도 걸리지 않았다면
+						kwTitle		= "%";																	// 모든 포스팅이 매칭되도록 한다
+
 					var userID		= authServer.GetUserIDFromAuthKey(recv.header.authKey);
 					var rowperpage	= recv.param.rowPerPage;
 					var rowstart	= recv.param.page * rowperpage;
 
 					var cmd	= sql.CreateCommand();
 					cmd.CommandText	=
-					@"select SQL_CALC_FOUND_ROWS '0' as category, idposting, authorid, title, datetime, 
+					@"select distinct SQL_CALC_FOUND_ROWS idposting, authorid, title, datetime, 
 														is_private, postings.is_blinded as post_blinded, user.is_blinded as user_blinded
-						from (postings join tags on postings.idposting = tags.postingid) join user on postings.authorid = user.iduser
+						from (postings left outer join tags on postings.idposting = tags.postingid)
+								left outer join user on postings.authorid = user.iduser
 						where (title like @title OR description like @desc OR tags.name like @tag OR authorid = @userid)
-								and ((is_private = false AND post_blinded = false AND user_blinded = false) OR authorid = @userid)
+								and ((is_private = false AND postings.is_blinded = false AND user.is_blinded = false) OR authorid = @userid)
 						order by idposting desc
-						limit @rowstart, @rowperpage
-					UNION
-						select '1' as category, FOUND_ROWS(), null, null, null, null, null, null
-						order by category desc";
+						limit " + string.Format("{0}, {1}", rowstart, rowperpage);
 
 					var param		= cmd.Parameters;
 					param.AddWithValue("@title", kwTitle);
@@ -70,12 +71,12 @@ namespace BakjeShareServer.Procedures
 					
 					while(reader.Read())
 					{
-						if (reader.GetInt32("category") == 1)				// 전체 레코드 갯수 row를 만난 경우, 레코드 갯수 추출 후 종료
-						{
-							totalCount	= reader.GetInt32(1);
-							break;
-						}
-						else
+						//if (reader.GetInt32("category") == 1)				// 전체 레코드 갯수 row를 만난 경우, 레코드 갯수 추출 후 종료
+						//{
+						//	totalCount	= reader.GetInt32("totalrows");
+						//	break;
+						//}
+						//else
 						{													// 일반 레코드 직접 추가
 							resultEntries.Add(new RespLookupPosting.Entry
 							{
@@ -88,10 +89,18 @@ namespace BakjeShareServer.Procedures
 							});
 						}
 					}
+					reader.Close();
+
+					var countcmd			= sql.CreateCommand();
+					countcmd.CommandText	= "select FOUND_ROWS()";
+					totalCount				= (int)(long)countcmd.ExecuteScalar();
+					
 					result.entries		= resultEntries.ToArray();
 					result.currentPage	= recv.param.page;
 					result.totalPage	= totalCount / rowperpage + (totalCount % rowperpage == 0? 0 : 1);
-					reader.Close();
+					
+
+					
 
 					send.SetParameter(result);	// 응답으로 전송할 JSON 만들기
 
@@ -188,7 +197,7 @@ namespace BakjeShareServer.Procedures
 					// 본문 추가
 
 					var cmd	= sql.CreateCommand();
-					cmd.CommandText	= @"insert into postings(authorid, title, desription, sourceurl, is_private)
+					cmd.CommandText	= @"insert into postings(authorid, title, description, sourceurl, is_private)
 														values(@userid, @title, @desc, @url, @isprivate)";
 					var param	= cmd.Parameters;
 					param.AddWithValue("@userid", userid);
@@ -202,7 +211,7 @@ namespace BakjeShareServer.Procedures
 
 					var idcmd	= sql.CreateCommand();
 					idcmd.CommandText	= "select last_insert_id()";
-					var lastid	= (int)idcmd.ExecuteScalar();
+					var lastid	= (ulong)idcmd.ExecuteScalar();
 
 					// 스샷 데이터 추가
 
@@ -218,7 +227,7 @@ namespace BakjeShareServer.Procedures
 
 					// 상태 리턴
 					send.header.code	= BakjeProtocol.Packet.Header.Code.OK;
-					send.SetParameter(new RespPostingModify() { status = RespPostingModify.Status.OK });
+					send.SetParameter(new RespPostingModify() { status = RespPostingModify.Status.OK, postID = (int)lastid });
 
 					return true;
 				});

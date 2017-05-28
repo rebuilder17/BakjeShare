@@ -160,6 +160,7 @@ namespace BakjeProtocol.Parameters
 		}
 
 		public Status		status;
+		public int			postID;
 	}
 
 	/// <summary>

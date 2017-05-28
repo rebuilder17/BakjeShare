@@ -202,8 +202,8 @@ namespace BakjeShareServer.Http
 						}
 						catch (Exception e)				// 에러가 발생하면 500 에러
 						{
-							SendHttpStatusPage(context.Response, HttpStatusCode.InternalServerError);
 							Console.Error.WriteLine(e.ToString());
+							SendHttpStatusPage(context.Response, HttpStatusCode.InternalServerError);
 						}
 					}
 				}
