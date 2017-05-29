@@ -228,4 +228,121 @@ namespace BakjeProtocol.Parameters
 
 		public Status		status;
 	}
+	//================================================================
+
+	/// <summary>
+	/// 리포팅 요청
+	/// </summary>
+	public class ReqFileReport
+	{
+		/// <summary>
+		/// 리포트 종류
+		/// </summary>
+		public enum Type
+		{
+			Posting,
+			User,
+			Bug,
+		}
+
+		public Type		type;
+		public string	shortdesc;
+		public string	longdesc;
+
+		public int		reportingPostID;
+		public string	reportingUserID;
+
+		public enum PostReportReason
+		{
+			Etc,
+		}
+		public PostReportReason postReportReason;
+
+		public enum UserReportReason
+		{
+			Etc,
+		}
+		public UserReportReason userReportReason;
+	}
+
+	/// <summary>
+	/// 리포팅 응답
+	/// </summary>
+	public class RespFileReport
+	{
+		public enum Status
+		{
+			OK,
+		}
+		public Status		status;
+	}
+
+	/// <summary>
+	/// 리포트 목록 조회 요청 (일반 리스트)
+	/// </summary>
+	public class ReqLookupReport
+	{
+		public int		page;
+		public int		rowPerPage;
+	}
+
+	/// <summary>
+	/// 리포트 목록 조회 응답
+	/// </summary>
+	public class RespLookupReport
+	{
+		public class Entry
+		{
+			public ReqFileReport.Type	type;
+			//public int					postID;
+			//public string				userID;
+			public string				shortdesc;
+			public string				reporterID;
+		}
+
+		public Entry[]	entries;
+
+		public int		currentPage;
+		public int		totalPage;
+	}
+
+	/// <summary>
+	/// 리포트 내용 요청
+	/// </summary>
+	public class ReqShowReport
+	{
+		public int reportID;
+	}
+
+	/// <summary>
+	/// 리포트 내용 응답
+	/// </summary>
+	public class RespShowReport
+	{
+		public ReqFileReport.Type	type;
+		public int					postID;
+		public string				userID;
+		public string				shortdesc;
+		public string				longdesc;
+	}
+
+	/// <summary>
+	/// 리포트 삭제 요청
+	/// </summary>
+	public class ReqCloseReport
+	{
+		public int			postID;
+	}
+
+	/// <summary>
+	/// 리포트 삭제 응답
+	/// </summary>
+	public class RespCloseReport
+	{
+		public enum Status
+		{
+			OK,
+		}
+		public Status		status;
+	}
 }

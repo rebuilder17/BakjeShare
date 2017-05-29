@@ -56,7 +56,7 @@ namespace BakjeShareServer.Procedures
 						order by idposting desc
 						limit " + string.Format("{0}, {1}", rowstart, rowperpage);
 
-					var param		= cmd.Parameters;
+					var param			= cmd.Parameters;
 					param.AddWithValue("@title", kwTitle);
 					param.AddWithValue("@desc", kwDesc);
 					param.AddWithValue("@tag", kwTag);
