@@ -23,19 +23,7 @@ namespace BakjeShareServer.Procedures
 			(recv, send) =>
 			{
 				var reporterID	= authServer.GetUserIDFromAuthKey(recv.header.authKey);
-				var typestr		= (string)null;
-				switch(recv.param.type)
-				{
-					case ReqFileReport.Type.Posting:
-						typestr	= "posting";
-						break;
-					case ReqFileReport.Type.User:
-						typestr	= "user";
-						break;
-					case ReqFileReport.Type.Bug:
-						typestr	= "bug";
-						break;
-				}
+				var typestr		= ReqFileReport.ReportTypeToString(recv.param.type);
 
 				sqlHelper.RunSqlSessionWithTransaction((sql) =>
 				{
@@ -98,21 +86,8 @@ namespace BakjeShareServer.Procedures
 
 						while(reader.Read())
 						{
-							ReqFileReport.Type reportType = ReqFileReport.Type.Bug;
-							var typestr		= reader.GetString("report_type");
-							switch(typestr)
-							{
-								case "posting":
-									reportType	= ReqFileReport.Type.Posting;
-									break;
-								case "user":
-									reportType	= ReqFileReport.Type.User;
-									break;
-								case "bug":
-									reportType	= ReqFileReport.Type.Bug;
-									break;
-							}
-
+							var reportType = ReqFileReport.ReportTypeFromString(reader.GetString("report_type"));
+							
 							entries.Add(new RespLookupReport.Entry
 							{
 								type		= reportType,
@@ -136,6 +111,74 @@ namespace BakjeShareServer.Procedures
 					// 응답
 					send.header.code		= BakjeProtocol.Packet.Header.Code.OK;
 					send.SetParameter(result);
+				});
+			});
+
+			// 리포트 열기
+			procedurePool.AddProcedure<ReqShowReport, RespShowReport>("ReqShowReport", "RespShowReport", UserType.Administrator,
+			(recv, send) =>
+			{
+				sqlHelper.RunSqlSession((sql) =>
+				{
+					var result	= new RespShowReport();
+
+					var cmd	= sql.CreateCommand();
+					cmd.CommandText	= @"select reporterid, report_type, shortdesc, longdesc,
+											from report left outer join
+												(case report_type
+													when 'posting' then report_reason_posting
+													when 'user' then report_reason_user
+													else (select @id as reportid)
+												endcase) as addinfo
+											on idreport = addinfo.reportid
+											where idreport = @id";
+					cmd.Parameters.AddWithValue("@id", recv.param.reportID);
+					
+					using (var reader = cmd.ExecuteReader())
+					{
+						reader.Read();
+
+						result.reporterID	= reader.GetString("reporterid");
+						result.type			= ReqFileReport.ReportTypeFromString(reader.GetString("report_type"));
+						result.shortdesc	= reader.GetString("shortdesc");
+						result.longdesc		= reader.GetString("longdesc");
+
+						if (result.type == ReqFileReport.Type.Posting)
+						{
+							result.repPostingID		= reader.GetInt32("addinfo.postingid");
+							result.postingRepReason	= (ReqFileReport.PostReportReason)reader.GetInt32("addinfo.reasoncode");
+						}
+						else if (result.type == ReqFileReport.Type.User)
+						{
+							result.repUserID		= reader.GetString("addinfo.userid");
+							result.userRepReason	= (ReqFileReport.UserReportReason)reader.GetInt32("addinfo.reasoncode");
+						}
+
+						reader.Close();
+					}
+
+					// 응답
+					send.header.code	= BakjeProtocol.Packet.Header.Code.OK;
+					send.SetParameter(result);
+				});
+			});
+
+			// 리포트 삭제
+			procedurePool.AddProcedure<ReqCloseReport, RespCloseReport>("ReqCloseReport", "RespCloseReport", UserType.Administrator,
+			(recv, send) =>
+			{
+				sqlHelper.RunSqlSessionWithTransaction((sql) =>
+				{
+					var cmd	= sql.CreateCommand();
+					cmd.CommandText	= @"delete from report where idreport = @id";
+					cmd.Parameters.AddWithValue("@id", recv.param.postID);
+					cmd.ExecuteNonQuery();
+
+					// 응답
+					send.header.code	= BakjeProtocol.Packet.Header.Code.OK;
+					send.SetParameter(new RespCloseReport { status = RespCloseReport.Status.OK });
+
+					return true;
 				});
 			});
 		}

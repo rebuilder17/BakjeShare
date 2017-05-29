@@ -263,6 +263,37 @@ namespace BakjeProtocol.Parameters
 			Etc,
 		}
 		public UserReportReason userReportReason;
+
+
+		// Utility
+
+		public static string ReportTypeToString(Type type)
+		{
+			switch(type)
+			{
+				case Type.Posting:
+					return "posting";
+				case Type.User:
+					return "user";
+				case Type.Bug:
+					return "bug";
+			}
+			return null;
+		}
+		
+		public static Type ReportTypeFromString(string typestr)
+		{
+			switch(typestr)
+			{
+				case "posting":
+					return Type.Posting;
+				case "user":
+					return Type.User;
+				case "bug":
+				default:
+					return Type.Bug;
+			}
+		}
 	}
 
 	/// <summary>
@@ -319,11 +350,15 @@ namespace BakjeProtocol.Parameters
 	/// </summary>
 	public class RespShowReport
 	{
+		public string				reporterID;
 		public ReqFileReport.Type	type;
-		public int					postID;
-		public string				userID;
 		public string				shortdesc;
 		public string				longdesc;
+
+		public int								repPostingID;
+		public ReqFileReport.PostReportReason	postingRepReason;
+		public string							repUserID;
+		public ReqFileReport.UserReportReason	userRepReason;
 	}
 
 	/// <summary>

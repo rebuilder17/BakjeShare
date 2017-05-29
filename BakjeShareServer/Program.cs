@@ -26,6 +26,7 @@ namespace BakjeShareServer
 			var authserver	= new SQL.SQLAuthServer(sqlHelper);
 			var authPP		= new Procedures.Auth("/auth/", server, authserver, sqlHelper);
 			var postPP		= new Procedures.Posting("/posting/", server, authserver, sqlHelper);
+			var reportPP	= new Procedures.Report("/report/", server, authserver, sqlHelper);
 
 			server.Start();
 
@@ -102,6 +103,7 @@ namespace BakjeShareServer
 
 			ClientProcedurePool m_authPP;
 			ClientProcedurePool	m_postPP;
+			ClientProcedurePool	m_reptPP;
 
 
 
@@ -138,6 +140,19 @@ namespace BakjeShareServer
 				postBridge.m_poolCtrl.SetSendDelegate((packet) => PacketSend(packet, "/posting/", postBridge));
 				m_postPP.Start();
 				//
+
+				m_reptPP		= new ClientProcedurePool();
+				m_reptPP.AddPairParamType<ReqFileReport, RespFileReport>("ReqFileReport", "RespFileReport");
+				m_reptPP.AddPairParamType<ReqLookupReport, RespLookupReport>("ReqLookupReport", "RespLookupReport");
+				m_reptPP.AddPairParamType<ReqShowReport, RespShowReport>("ReqShowReport", "RespShowReport");
+				m_reptPP.AddPairParamType<ReqCloseReport, RespCloseReport>("ReqCloseReport", "RespCloseReport");
+
+				var reptBridge	= new TestClientBridge();
+				m_reptPP.SetBridge(reptBridge);
+				m_reptPP.SetAuthClientObject(m_authClient);
+
+				reptBridge.m_poolCtrl.SetSendDelegate((packet) => PacketSend(packet, "/report/", reptBridge));
+				m_reptPP.Start();
 			}
 
 			static void PacketSend(Packet packet, string suburl, TestClientBridge bridge)
