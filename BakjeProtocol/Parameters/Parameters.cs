@@ -70,6 +70,35 @@ namespace BakjeProtocol.Parameters
 
 		public Status		status;
 	}
+
+	/// <summary>
+	/// 유저 블라인드(설정/해제) 요청
+	/// </summary>
+	public class ReqBlindUser
+	{
+		public string userID;
+		public bool setBlind;
+	}
+
+	/// <summary>
+	/// 유저 정보 요청
+	/// </summary>
+	public class ReqUserInfo
+	{
+		public string userID;
+	}
+
+	/// <summary>
+	/// 유저 정보 응답
+	/// </summary>
+	public class RespUserInfo
+	{
+		public string userID;
+		public string email;
+		public bool isBlinded;
+		public bool isAdmin;
+	}
+
 	//================================================================
 
 	/// <summary>
@@ -128,6 +157,7 @@ namespace BakjeProtocol.Parameters
 		public string sourceURL;
 		public DateTime datetime;
 		public bool isPrivate;
+		public bool isBlinded;
 
 		public string[] mytags;
 		public string[] othertags;

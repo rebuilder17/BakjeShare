@@ -28,6 +28,7 @@ namespace BakjeShareServer
 			var postPP		= new Procedures.Posting("/posting/", server, authserver, sqlHelper);
 			var reportPP	= new Procedures.Report("/report/", server, authserver, sqlHelper);
 			var noticePP	= new Procedures.Notice("/notice/", server, authserver, sqlHelper);
+			var userPP		= new Procedures.User("/user/", server, authserver, sqlHelper);
 
 			server.Start();
 
@@ -96,17 +97,37 @@ namespace BakjeShareServer
 			//}
 			//Console.Out.WriteLine("desc : {0}", report.longdesc);
 
-			client.SendLoginRequest("admin", "admin");
+			//client.SendLoginRequest("admin", "admin");
 			//client.SendPostNotice("임시점검", "안해요");
 			//client.SendDeleteNotice(2);
-			var notilist = client.SendLookupNotice();
-			foreach(var entry in notilist.entries)
-			{
-				Console.Out.WriteLine("{0} {1} (time : {2}", entry.noticeID, entry.title, entry.datetime);
-			}
+			//var notilist = client.SendLookupNotice();
+			//foreach(var entry in notilist.entries)
+			//{
+			//	Console.Out.WriteLine("{0} {1} (time : {2}", entry.noticeID, entry.title, entry.datetime);
+			//}
 
-			var notice = client.SendShowNotice(3);
-			Console.Out.WriteLine("title : {0}\ndate : {1}\ndetail : {2}", notice.title, notice.datetime, notice.desc);
+			//var notice = client.SendShowNotice(3);
+			//Console.Out.WriteLine("title : {0}\ndate : {1}\ndetail : {2}", notice.title, notice.datetime, notice.desc);
+
+			//client.SendLoginRequest("user2", "user2");
+			//client.SendNewPost("비밀글", "캬", "", true);
+			client.SendLoginRequest("admin", "admin");
+			client.SendBlindUser("user2", false);
+			client.SendBlindUser("user1", false);
+			var postings	= client.SendLookupPosting(null, null, null, null, 0, 20);
+			foreach (var entry in postings.entries)
+			{
+				Console.Out.WriteLine("{0} : {1} by {2} (date : {3}) {4}", entry.postID, entry.title, entry.author, entry.postingTime, entry.isBlinded? "(blinded)" : "");
+			}
+			Console.Out.WriteLine("page {0} of {1}", postings.currentPage + 1, postings.totalPage);
+
+			client.SendLoginRequest("user1", "user1");
+			postings	= client.SendLookupPosting(null, null, null, null, 0, 20);
+			foreach (var entry in postings.entries)
+			{
+				Console.Out.WriteLine("{0} : {1} by {2} (date : {3}) {4}", entry.postID, entry.title, entry.author, entry.postingTime, entry.isBlinded ? "(blinded)" : "");
+			}
+			Console.Out.WriteLine("page {0} of {1}", postings.currentPage + 1, postings.totalPage);
 
 			Console.Out.WriteLine("any key to close...");
 			Console.ReadKey();
@@ -147,6 +168,7 @@ namespace BakjeShareServer
 			TestAuthClient		m_authClient;
 
 			ClientProcedurePool m_authPP;
+			ClientProcedurePool	m_userPP;
 			ClientProcedurePool	m_postPP;
 			ClientProcedurePool	m_reptPP;
 			ClientProcedurePool	m_notiPP;
@@ -168,6 +190,18 @@ namespace BakjeShareServer
 
 				authBridge.m_poolCtrl.SetSendDelegate((packet) => PacketSend(packet, "/auth/", authBridge));
 				m_authPP.Start();
+				//
+
+				m_userPP		= new ClientProcedurePool();
+				m_userPP.AddPairParamType<ReqBlindUser, EmptyParam>("ReqBlindUser", "RespBlindUser");
+				m_userPP.AddPairParamType<ReqUserInfo, RespUserInfo>("ReqUserInfo", "RespUserInfo");
+
+				var userBridge	= new TestClientBridge();
+				m_userPP.SetBridge(userBridge);
+				m_userPP.SetAuthClientObject(m_authClient);
+
+				userBridge.m_poolCtrl.SetSendDelegate((packet) => PacketSend(packet, "/user/", userBridge));
+				m_userPP.Start();
 				//
 
 				m_postPP		= new ClientProcedurePool();
@@ -316,9 +350,38 @@ namespace BakjeShareServer
 					m_authClient.Clear();
 				});
 			}
+
+			public void SendBlindUser(string userID, bool setBlind)
+			{
+				m_userPP.DoRequest<ReqBlindUser, EmptyParam>("ReqBlindUser",
+					(send) =>
+					{
+						send.SetParameter(new ReqBlindUser { userID = userID, setBlind = setBlind });
+					},
+					(recv) =>
+					{
+
+					});
+			}
+
+			public RespUserInfo SendShowUserInfo(string userID)
+			{
+				RespUserInfo result = null;
+
+				m_userPP.DoRequest<ReqUserInfo, RespUserInfo>("ReqUserInfo",
+					(send) =>
+					{
+						send.SetParameter(new ReqUserInfo { userID = userID });
+					},
+					(recv) =>
+					{
+						result	= recv.param;
+					});
+				return result;
+			}
 			//
 
-			public int SendNewPost(string title, string description, string sourceURL, IList<byte[]> dataList = null)
+			public int SendNewPost(string title, string description, string sourceURL, bool isPrivate, IList<byte[]> dataList = null)
 			{
 				var postID	= -1;
 
@@ -327,9 +390,10 @@ namespace BakjeShareServer
 					{
 						send.SetParameter(new ReqNewPosting
 						{
-							title	= title,
-							desc	= description,
+							title		= title,
+							desc		= description,
 							sourceURL	= sourceURL,
+							isPrivate	= isPrivate,
 						});
 
 						if (dataList != null)

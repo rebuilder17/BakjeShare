@@ -42,6 +42,7 @@ namespace BakjeShareServer.Procedures
 						kwTitle		= "%";																	// 모든 포스팅이 매칭되도록 한다
 
 					var userID		= authServer.GetUserIDFromAuthKey(recv.header.authKey);
+					var isAdmin		= authServer.GetUserAuthType(userID) == UserType.Administrator;
 					var rowperpage	= recv.param.rowPerPage;
 					var rowstart	= recv.param.page * rowperpage;
 
@@ -51,8 +52,8 @@ namespace BakjeShareServer.Procedures
 														is_private, postings.is_blinded as post_blinded, user.is_blinded as user_blinded
 						from (postings left outer join tags on postings.idposting = tags.postingid)
 								left outer join user on postings.authorid = user.iduser
-						where (title like @title OR description like @desc OR tags.name like @tag OR authorid = @userid)
-								and ((is_private = false AND postings.is_blinded = false AND user.is_blinded = false) OR authorid = @userid)
+						where (title like @title OR description like @desc OR tags.name like @tag OR authorid = @author)
+								and (is_private = false OR authorid = @userid OR @isadmin)
 						order by idposting desc
 						limit " + string.Format("{0}, {1}", rowstart, rowperpage);
 
@@ -60,7 +61,9 @@ namespace BakjeShareServer.Procedures
 					param.AddWithValue("@title", kwTitle);
 					param.AddWithValue("@desc", kwDesc);
 					param.AddWithValue("@tag", kwTag);
-					param.AddWithValue("@userid", kwUser);
+					param.AddWithValue("@author", kwUser);
+					param.AddWithValue("@userid", userID);
+					param.AddWithValue("@isadmin", isAdmin);
 					param.AddWithValue("@rowstart", rowstart);
 					param.AddWithValue("@rowperpage", rowperpage);
 
@@ -80,12 +83,12 @@ namespace BakjeShareServer.Procedures
 						{													// 일반 레코드 직접 추가
 							resultEntries.Add(new RespLookupPosting.Entry
 							{
-								postID	= reader.GetInt32("idposting"),
-								author	= reader.GetString("authorid"),
-								title	= reader.GetString("title"),
+								postID		= reader.GetInt32("idposting"),
+								author		= reader.GetString("authorid"),
+								title		= reader.GetString("title"),
 								postingTime	= reader.GetDateTime("datetime"),
 								isPrivate	= reader.GetBoolean("is_private"),
-								isBlinded	= reader.GetBoolean("post_blinded") && reader.GetBoolean("user_blinded"),
+								isBlinded	= reader.GetBoolean("post_blinded") || reader.GetBoolean("user_blinded"),
 							});
 						}
 					}
@@ -121,7 +124,7 @@ namespace BakjeShareServer.Procedures
 					// 본문 가져오기
 
 					var cmd	= sql.CreateCommand();
-					cmd.CommandText	= @"select authorid, title, description, sourceurl, datetime, is_private from postings
+					cmd.CommandText	= @"select authorid, title, description, sourceurl, datetime, is_private, is_blinded from postings
 											where idposting = @postid";
 					cmd.Parameters.AddWithValue("@postid", postid);
 
@@ -135,6 +138,7 @@ namespace BakjeShareServer.Procedures
 						sendParam.sourceURL	= reader.GetString("sourceurl");
 						sendParam.datetime	= reader.GetDateTime("datetime");
 						sendParam.isPrivate	= reader.GetBoolean("is_private");
+						sendParam.isBlinded	= reader.GetBoolean("is_blinded");
 
 						reader.Close();
 					}

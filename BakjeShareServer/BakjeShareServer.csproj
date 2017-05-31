@@ -51,6 +51,7 @@
     <Compile Include="Procedures\Notice.cs" />
     <Compile Include="Procedures\Posting.cs" />
     <Compile Include="Procedures\Report.cs" />
+    <Compile Include="Procedures\User.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQL\SQLAuthServer.cs" />
