@@ -25,7 +25,7 @@ namespace BakjeShareServer.Procedures
 				sqlHelper.RunSqlSessionWithTransaction((sql) =>
 				{
 					var cmd	= sql.CreateCommand();
-					cmd.CommandText	= @"insert into notice(title, desc) values(@title, @desc)";
+					cmd.CommandText	= @"insert into notice(title, description) values(@title, @desc)";
 					cmd.Parameters.AddWithValue("@title", recv.param.title);
 					cmd.Parameters.AddWithValue("@desc", recv.param.desc);
 					cmd.ExecuteNonQuery();
@@ -68,7 +68,7 @@ namespace BakjeShareServer.Procedures
 
 					var cmd	= sql.CreateCommand();
 					cmd.CommandText	= @"select SQL_CALC_FOUND_ROWS idnotice, title, datetime from notice order by idnotice desc limit "
-											+ string.Format("{0} {1}", rowstart, rowperpage);
+											+ string.Format("{0}, {1}", rowstart, rowperpage);
 
 					using (var reader = cmd.ExecuteReader())
 					{
@@ -113,7 +113,7 @@ namespace BakjeShareServer.Procedures
 					var result	= new RespShowNotice();
 
 					var cmd	= sql.CreateCommand();
-					cmd.CommandText	= @"select title, desc, datetime from notice where idnotice = @id";
+					cmd.CommandText	= @"select title, description, datetime from notice where idnotice = @id";
 					cmd.Parameters.AddWithValue("@id", recv.param.noticeID);
 
 					using (var reader = cmd.ExecuteReader())
@@ -121,7 +121,7 @@ namespace BakjeShareServer.Procedures
 						reader.Read();
 
 						result.title	= reader.GetString("title");
-						result.desc		= reader.GetString("desc");
+						result.desc		= reader.GetString("description");
 						result.datetime	= reader.GetDateTime("datetime");
 
 						reader.Close();

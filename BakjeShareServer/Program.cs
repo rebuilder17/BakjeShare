@@ -27,6 +27,7 @@ namespace BakjeShareServer
 			var authPP		= new Procedures.Auth("/auth/", server, authserver, sqlHelper);
 			var postPP		= new Procedures.Posting("/posting/", server, authserver, sqlHelper);
 			var reportPP	= new Procedures.Report("/report/", server, authserver, sqlHelper);
+			var noticePP	= new Procedures.Notice("/notice/", server, authserver, sqlHelper);
 
 			server.Start();
 
@@ -71,13 +72,13 @@ namespace BakjeShareServer
 			//client.SendFileReport_Posting("포스팅 극혐", "내려주세요", 11, ReqFileReport.PostReportReason.Etc);
 			//client.SendLookupReport();
 
-			client.SendLoginRequest("admin", "admin");
+			//client.SendLoginRequest("admin", "admin");
 			//client.SendCloseReport(5);
-			var reports = client.SendLookupReport();
-			foreach(var entry in reports.entries)
-			{
-				Console.Out.WriteLine("{0} : {1} by {2} type : {3}", entry.reportID, entry.shortdesc, entry.reporterID, entry.type);
-			}
+			//var reports = client.SendLookupReport();
+			//foreach(var entry in reports.entries)
+			//{
+			//	Console.Out.WriteLine("{0} : {1} by {2} type : {3}", entry.reportID, entry.shortdesc, entry.reporterID, entry.type);
+			//}
 
 			//var report = client.SendShowReport(5);
 			//Console.Out.WriteLine("title : {0}", report.shortdesc);
@@ -94,6 +95,18 @@ namespace BakjeShareServer
 			//		break;
 			//}
 			//Console.Out.WriteLine("desc : {0}", report.longdesc);
+
+			client.SendLoginRequest("admin", "admin");
+			//client.SendPostNotice("임시점검", "안해요");
+			//client.SendDeleteNotice(2);
+			var notilist = client.SendLookupNotice();
+			foreach(var entry in notilist.entries)
+			{
+				Console.Out.WriteLine("{0} {1} (time : {2}", entry.noticeID, entry.title, entry.datetime);
+			}
+
+			var notice = client.SendShowNotice(3);
+			Console.Out.WriteLine("title : {0}\ndate : {1}\ndetail : {2}", notice.title, notice.datetime, notice.desc);
 
 			Console.Out.WriteLine("any key to close...");
 			Console.ReadKey();
@@ -136,7 +149,7 @@ namespace BakjeShareServer
 			ClientProcedurePool m_authPP;
 			ClientProcedurePool	m_postPP;
 			ClientProcedurePool	m_reptPP;
-
+			ClientProcedurePool	m_notiPP;
 
 
 			public TestClient()
@@ -185,6 +198,20 @@ namespace BakjeShareServer
 
 				reptBridge.m_poolCtrl.SetSendDelegate((packet) => PacketSend(packet, "/report/", reptBridge));
 				m_reptPP.Start();
+				//
+
+				m_notiPP		= new ClientProcedurePool();
+				m_notiPP.AddPairParamType<ReqPostNotice, EmptyParam>("ReqPostNotice", "RespPostNotice");
+				m_notiPP.AddPairParamType<ReqDeleteNotice, EmptyParam>("ReqDeleteNotice", "RespDeleteNotice");
+				m_notiPP.AddPairParamType<ReqLookupNotice, RespLookupNotice>("ReqLookupNotice", "RespLookupNotice");
+				m_notiPP.AddPairParamType<ReqShowNotice, RespShowNotice>("ReqShowNotice", "RespShowNotice");
+
+				var notiBridge	= new TestClientBridge();
+				m_notiPP.SetBridge(notiBridge);
+				m_notiPP.SetAuthClientObject(m_authClient);
+
+				notiBridge.m_poolCtrl.SetSendDelegate((packet) => PacketSend(packet, "/notice/", notiBridge));
+				m_notiPP.Start();
 			}
 
 			static void PacketSend(Packet packet, string suburl, TestClientBridge bridge)
@@ -492,6 +519,66 @@ namespace BakjeShareServer
 					{
 
 					});
+			}
+
+			public void SendPostNotice(string title, string desc)
+			{
+				m_notiPP.DoRequest<ReqPostNotice, EmptyParam>("ReqPostNotice",
+					(send) =>
+					{
+						send.SetParameter(new ReqPostNotice { title = title, desc = desc });
+					},
+					(recv) =>
+					{
+
+					});
+			}
+
+			public void SendDeleteNotice(int noticeID)
+			{
+				m_notiPP.DoRequest<ReqDeleteNotice, EmptyParam>("ReqDeleteNotice",
+					(send) =>
+					{
+						send.SetParameter(new ReqDeleteNotice { noticeID = noticeID });
+					},
+					(recv) =>
+					{
+
+					});
+			}
+
+			public RespLookupNotice SendLookupNotice()
+			{
+				RespLookupNotice result = null;
+
+				m_notiPP.DoRequest<ReqLookupNotice, RespLookupNotice>("ReqLookupNotice",
+					(send) =>
+					{
+						send.SetParameter(new ReqLookupNotice { page = 0, rowperpage = 20 });
+					},
+					(recv) =>
+					{
+						result	= recv.param;
+					});
+
+				return result;
+			}
+
+			public RespShowNotice SendShowNotice(int noticeid)
+			{
+				RespShowNotice result = null;
+
+				m_notiPP.DoRequest<ReqShowNotice, RespShowNotice>("ReqShowNotice",
+					(send) =>
+					{
+						send.SetParameter(new ReqShowNotice { noticeID = noticeid });
+					},
+					(recv) =>
+					{
+						result = recv.param;
+					});
+
+				return result;
 			}
 		}
 	}
