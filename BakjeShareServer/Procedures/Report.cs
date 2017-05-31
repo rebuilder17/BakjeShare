@@ -51,7 +51,7 @@ namespace BakjeShareServer.Procedures
 						usercmd.CommandText	= @"insert into report_reason_user(reportid, reasoncode, userid)
 															values(last_insert_id(), @code, @userid)";
 						usercmd.Parameters.AddWithValue("@code", recv.param.userReportReason);
-						usercmd.Parameters.AddWithValue("@postid", recv.param.reportingUserID);
+						usercmd.Parameters.AddWithValue("@userid", recv.param.reportingUserID);
 						usercmd.ExecuteNonQuery();
 					}
 
@@ -87,9 +87,10 @@ namespace BakjeShareServer.Procedures
 						while(reader.Read())
 						{
 							var reportType = ReqFileReport.ReportTypeFromString(reader.GetString("report_type"));
-							
+
 							entries.Add(new RespLookupReport.Entry
 							{
+								reportID	= reader.GetInt32("idreport"),
 								type		= reportType,
 								shortdesc	= reader.GetString("shortdesc"),
 								reporterID	= reader.GetString("reporterid"),
@@ -123,14 +124,14 @@ namespace BakjeShareServer.Procedures
 					var result	= new RespShowReport();
 
 					var cmd	= sql.CreateCommand();
-					cmd.CommandText	= @"select reporterid, report_type, shortdesc, longdesc,
-											from report left outer join
+					cmd.CommandText	= @"select reporterid, report_type, shortdesc, longdesc, postingid, userid, 
 												(case report_type
-													when 'posting' then report_reason_posting
-													when 'user' then report_reason_user
-													else (select @id as reportid)
-												endcase) as addinfo
-											on idreport = addinfo.reportid
+													when 'posting' then rp.reasoncode
+													when 'user' then ru.reasoncode
+													else null
+												end) as reason
+											from report left outer join report_reason_posting as rp on idreport = rp.reportid
+														left outer join report_reason_user as ru on idreport = ru.reportid
 											where idreport = @id";
 					cmd.Parameters.AddWithValue("@id", recv.param.reportID);
 					
@@ -145,13 +146,13 @@ namespace BakjeShareServer.Procedures
 
 						if (result.type == ReqFileReport.Type.Posting)
 						{
-							result.repPostingID		= reader.GetInt32("addinfo.postingid");
-							result.postingRepReason	= (ReqFileReport.PostReportReason)reader.GetInt32("addinfo.reasoncode");
+							result.repPostingID		= reader.GetInt32("postingid");
+							result.postingRepReason	= (ReqFileReport.PostReportReason)reader.GetInt32("reason");
 						}
 						else if (result.type == ReqFileReport.Type.User)
 						{
-							result.repUserID		= reader.GetString("addinfo.userid");
-							result.userRepReason	= (ReqFileReport.UserReportReason)reader.GetInt32("addinfo.reasoncode");
+							result.repUserID		= reader.GetString("userid");
+							result.userRepReason	= (ReqFileReport.UserReportReason)reader.GetInt32("reason");
 						}
 
 						reader.Close();

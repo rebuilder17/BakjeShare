@@ -55,14 +55,46 @@ namespace BakjeShareServer
 			//client.SendLoginRequest("user2", "user2");
 			//client.SendAddTag(postid, "다른유저태그");
 
-			client.SendLoginRequest("user1", "user1");
-			var postings	= client.SendLookupPosting(null, null, null, null, 0, 20);
-			foreach (var entry in postings.entries)
+			//client.SendLoginRequest("user1", "user1");
+			//var postings	= client.SendLookupPosting(null, null, null, null, 0, 20);
+			//foreach (var entry in postings.entries)
+			//{
+			//	Console.Out.WriteLine("{0} : {1} by {2} (date : {3})", entry.postID, entry.title, entry.author, entry.postingTime);
+			//}
+			//Console.Out.WriteLine("page {0} of {1}", postings.currentPage + 1, postings.totalPage);
+
+			//client.SendLoginRequest("user1", "user1");
+			//client.SendFileReport_Bug("버그좀잡아주세요;", "참내;;;");
+			//client.SendLoginRequest("user2", "user2");
+			//client.SendFileReport_User("얘 리폿좀요", "욕해요", "user1", ReqFileReport.UserReportReason.Etc);
+			//client.SendLoginRequest("defaultuser", "blaaah");
+			//client.SendFileReport_Posting("포스팅 극혐", "내려주세요", 11, ReqFileReport.PostReportReason.Etc);
+			//client.SendLookupReport();
+
+			client.SendLoginRequest("admin", "admin");
+			//client.SendCloseReport(5);
+			var reports = client.SendLookupReport();
+			foreach(var entry in reports.entries)
 			{
-				Console.Out.WriteLine("{0} : {1} by {2} (date : {3})", entry.postID, entry.title, entry.author, entry.postingTime);
+				Console.Out.WriteLine("{0} : {1} by {2} type : {3}", entry.reportID, entry.shortdesc, entry.reporterID, entry.type);
 			}
-			Console.Out.WriteLine("page {0} of {1}", postings.currentPage + 1, postings.totalPage);
-			
+
+			//var report = client.SendShowReport(5);
+			//Console.Out.WriteLine("title : {0}", report.shortdesc);
+			//switch(report.type)
+			//{
+			//	case ReqFileReport.Type.Bug:
+			//		Console.Out.WriteLine("bug report");
+			//		break;
+			//	case ReqFileReport.Type.Posting:
+			//		Console.Out.WriteLine("reports posting : {0}", report.repPostingID);
+			//		break;
+			//	case ReqFileReport.Type.User:
+			//		Console.Out.WriteLine("reports user : {0}", report.repUserID);
+			//		break;
+			//}
+			//Console.Out.WriteLine("desc : {0}", report.longdesc);
+
 			Console.Out.WriteLine("any key to close...");
 			Console.ReadKey();
 			server.Stop();
@@ -351,6 +383,115 @@ namespace BakjeShareServer
 					});
 
 				return result;
+			}
+
+			public void SendFileReport_Posting(string shortdesc, string longdesc, int postid, ReqFileReport.PostReportReason reason)
+			{
+				m_reptPP.DoRequest<ReqFileReport, RespFileReport>("ReqFileReport",
+					(send) =>
+					{
+						send.SetParameter(new ReqFileReport
+						{
+							type				= ReqFileReport.Type.Posting,
+							shortdesc			= shortdesc,
+							longdesc			= longdesc,
+							reportingPostID		= postid,
+							postReportReason	= reason,
+						});
+					},
+					(recv) =>
+					{
+
+					});
+			}
+
+			public void SendFileReport_User(string shortdesc, string longdesc, string reportID, ReqFileReport.UserReportReason reason)
+			{
+				m_reptPP.DoRequest<ReqFileReport, RespFileReport>("ReqFileReport",
+					(send) =>
+					{
+						send.SetParameter(new ReqFileReport
+						{
+							type				= ReqFileReport.Type.User,
+							shortdesc			= shortdesc,
+							longdesc			= longdesc,
+							reportingUserID		= reportID,
+							userReportReason	= reason,
+						});
+					},
+					(recv) =>
+					{
+
+					});
+			}
+
+			public void SendFileReport_Bug(string shortdesc, string longdesc)
+			{
+				m_reptPP.DoRequest<ReqFileReport, RespFileReport>("ReqFileReport",
+					(send) =>
+					{
+						send.SetParameter(new ReqFileReport
+						{
+							type				= ReqFileReport.Type.Bug,
+							shortdesc			= shortdesc,
+							longdesc			= longdesc,
+						});
+					},
+					(recv) =>
+					{
+
+					});
+			}
+
+			public RespLookupReport SendLookupReport()
+			{
+				RespLookupReport result = null;
+
+				m_reptPP.DoRequest<ReqLookupReport, RespLookupReport>("ReqLookupReport",
+					(send) =>
+					{
+						send.SetParameter(new ReqLookupReport
+						{
+							page = 0,
+							rowPerPage = 20,
+						});
+					},
+					(recv) =>
+					{
+						result = recv.param;
+					});
+
+				return result;
+			}
+
+			public RespShowReport SendShowReport(int reportid)
+			{
+				RespShowReport result = null;
+
+				m_reptPP.DoRequest<ReqShowReport, RespShowReport>("ReqShowReport",
+					(send) =>
+					{
+						send.SetParameter(new ReqShowReport { reportID = reportid });
+					},
+					(recv) =>
+					{
+						result = recv.param;
+					});
+
+				return result;
+			}
+
+			public void SendCloseReport(int reportid)
+			{
+				m_reptPP.DoRequest<ReqCloseReport, RespCloseReport>("ReqCloseReport",
+					(send) =>
+					{
+						send.SetParameter(new ReqCloseReport { postID = reportid });
+					},
+					(recv) =>
+					{
+
+					});
 			}
 		}
 	}

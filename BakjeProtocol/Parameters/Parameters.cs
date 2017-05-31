@@ -324,6 +324,7 @@ namespace BakjeProtocol.Parameters
 	{
 		public class Entry
 		{
+			public int					reportID;
 			public ReqFileReport.Type	type;
 			//public int					postID;
 			//public string				userID;
@@ -379,5 +380,68 @@ namespace BakjeProtocol.Parameters
 			OK,
 		}
 		public Status		status;
+	}
+	//================================================================
+
+	/// <summary>
+	/// 공지 올리기 요청
+	/// </summary>
+	public class ReqPostNotice
+	{
+		public string title;
+		public string desc;
+	}
+
+	/// <summary>
+	/// 공지 삭제 요청
+	/// </summary>
+	public class ReqDeleteNotice
+	{
+		public int noticeID;
+	}
+
+	/// <summary>
+	/// 공지 목록 열람 요청
+	/// </summary>
+	public class ReqLookupNotice
+	{
+		public int page;
+		public int rowperpage;
+	}
+
+	/// <summary>
+	/// 공지 목록 열람 응답
+	/// </summary>
+	public class RespLookupNotice
+	{
+		public class Entry
+		{
+			public int noticeID;
+			public string title;
+			public DateTime datetime;
+		}
+
+		public Entry[] entries;
+
+		public int currentPage;
+		public int totalPage;
+	}
+
+	/// <summary>
+	/// 공지 열기 요청
+	/// </summary>
+	public class ReqShowNotice
+	{
+		public int noticeID;
+	}
+
+	/// <summary>
+	/// 공지 열기 응답
+	/// </summary>
+	public class RespShowNotice
+	{
+		public string title;
+		public string desc;
+		public DateTime datetime;
 	}
 }
