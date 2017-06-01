@@ -181,8 +181,6 @@ namespace BakjeShareServer
 				m_authPP		= new ClientProcedurePool();
 				m_authPP.AddPairParamType<ReqLogin, RespLogin>("ReqLogin", "RespLogin");
 				m_authPP.AddPairParamType<EmptyParam, EmptyParam>("ReqCheckAuth", "RespCheckAuth");
-				m_authPP.AddPairParamType<ReqNewUser, RespNewUser>("ReqNewUser", "RespNewUser");
-				m_authPP.AddPairParamType<EmptyParam, EmptyParam>("ReqDeleteUser", "RespDeleteUser");
 
 				var authBridge	= new TestClientBridge();
 				m_authPP.SetBridge(authBridge);
@@ -193,6 +191,8 @@ namespace BakjeShareServer
 				//
 
 				m_userPP		= new ClientProcedurePool();
+				m_userPP.AddPairParamType<ReqNewUser, RespNewUser>("ReqNewUser", "RespNewUser");
+				m_userPP.AddPairParamType<EmptyParam, EmptyParam>("ReqDeleteUser", "RespDeleteUser");
 				m_userPP.AddPairParamType<ReqBlindUser, EmptyParam>("ReqBlindUser", "RespBlindUser");
 				m_userPP.AddPairParamType<ReqUserInfo, RespUserInfo>("ReqUserInfo", "RespUserInfo");
 
@@ -317,7 +317,7 @@ namespace BakjeShareServer
 
 			public void SendNewuser(string userid, string password, string email)
 			{
-				m_authPP.DoRequest<ReqNewUser, RespNewUser>("ReqNewUser", (sendObj) =>
+				m_userPP.DoRequest<ReqNewUser, RespNewUser>("ReqNewUser", (sendObj) =>
 				{
 					sendObj.SetParameter(new ReqNewUser() { userid = userid, password = password, email = email });
 				},
@@ -340,7 +340,7 @@ namespace BakjeShareServer
 
 			public void SendDeleteUser()
 			{
-				m_authPP.DoRequest<EmptyParam, EmptyParam>("ReqDeleteUser", (sendObj) =>
+				m_userPP.DoRequest<EmptyParam, EmptyParam>("ReqDeleteUser", (sendObj) =>
 				{
 
 				},
