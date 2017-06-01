@@ -114,6 +114,7 @@ namespace BakjeShareServer
 			client.SendLoginRequest("admin", "admin");
 			client.SendBlindUser("user2", false);
 			client.SendBlindUser("user1", false);
+			client.SendBlindPost(9, true);
 			var postings	= client.SendLookupPosting(null, null, null, null, 0, 20);
 			foreach (var entry in postings.entries)
 			{
@@ -209,6 +210,7 @@ namespace BakjeShareServer
 				m_postPP.AddPairParamType<ReqShowPosting, RespShowPosting>("ReqShowPosting", "RespShowPosting");
 				m_postPP.AddPairParamType<ReqNewPosting, RespPostingModify>("ReqNewPosting", "RespNewPosting");
 				m_postPP.AddPairParamType<ReqDeletePosting, RespDeletePosting>("ReqDeletePosting", "RespDeletePosting");
+				m_postPP.AddPairParamType<ReqBlindPosting, EmptyParam>("ReqBlindPosting", "RespBlindPosting");
 				m_postPP.AddPairParamType<ReqAddTag, RespAddTag>("ReqAddTag", "RespAddTag");
 				m_postPP.AddPairParamType<ReqDeleteTag, RespDeleteTag>("ReqDeleteTag", "RespDeleteTag");
 
@@ -422,6 +424,19 @@ namespace BakjeShareServer
 					(recv) =>
 					{
 
+					});
+			}
+
+			public void SendBlindPost(int postID, bool setblind)
+			{
+				m_postPP.DoRequest<ReqBlindPosting, EmptyParam>("ReqBlindPosting",
+					(send) =>
+					{
+						send.SetParameter(new ReqBlindPosting { postID = postID, setBlind = setblind });
+					},
+					(recv) =>
+					{
+						
 					});
 			}
 

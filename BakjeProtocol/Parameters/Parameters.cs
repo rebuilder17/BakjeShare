@@ -215,6 +215,15 @@ namespace BakjeProtocol.Parameters
 	}
 
 	/// <summary>
+	/// 포스팅 블라인드 요청
+	/// </summary>
+	public class ReqBlindPosting
+	{
+		public int			postID;
+		public bool			setBlind;
+	}
+
+	/// <summary>
 	/// 태그 추가 요청
 	/// </summary>
 	public class ReqAddTag

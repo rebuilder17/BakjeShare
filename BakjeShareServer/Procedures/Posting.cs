@@ -259,6 +259,26 @@ namespace BakjeShareServer.Procedures
 				});
 			});
 
+			procedurePool.AddProcedure<ReqBlindPosting, EmptyParam>("ReqBlindPosting", "RespBlindPosting", UserType.Administrator,
+			(recv, send) =>
+			{
+				var postid	= recv.param.postID;
+
+				sqlHelper.RunSqlSessionWithTransaction((sql) =>
+				{
+					var cmd	= sql.CreateCommand();
+					cmd.CommandText	= @"update postings set is_blinded = @blind where idposting = @id";
+					cmd.Parameters.AddWithValue("@id", postid);
+					cmd.Parameters.AddWithValue("@blind", recv.param.setBlind);
+					cmd.ExecuteNonQuery();
+
+					// 응답
+					send.header.code	= BakjeProtocol.Packet.Header.Code.OK;
+
+					return true;
+				});
+			});
+
 			// 태그 추가
 
 			procedurePool.AddProcedure<ReqAddTag, RespAddTag>("ReqAddTag", "RespAddTag", UserType.Registered,
