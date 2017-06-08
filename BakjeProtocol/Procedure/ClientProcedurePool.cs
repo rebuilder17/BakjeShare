@@ -11,7 +11,7 @@ namespace BakjeProtocol
 		// Members
 
 		Auth.BaseAuthClient			m_authClient;
-		Dictionary<string, string>	m_sendRecvMsgTypePair;	// 전송시 메세지 타입 - 받을 때 메세지 타입 매칭
+		//Dictionary<string, string>	m_sendRecvMsgTypePair;	// 전송시 메세지 타입 - 받을 때 메세지 타입 매칭
 
 		string			m_expectedRecvMsgType;				// 받아야할 recv 메세지 타입, 이것과 어긋나면 뭔가 잘못된 것
 		Action<object>	m_recvCallback;						// 다음에 1회 호출할 콜백
@@ -20,7 +20,7 @@ namespace BakjeProtocol
 
 		public ClientProcedurePool()
 		{
-			m_sendRecvMsgTypePair	= new Dictionary<string, string>();
+			//m_sendRecvMsgTypePair	= new Dictionary<string, string>();
 		}
 
 		public void SetAuthClientObject(Auth.BaseAuthClient authClient)
@@ -43,7 +43,8 @@ namespace BakjeProtocol
 				AddMessageType<ReceiveParamT>(recvTypeStr);
 			}
 
-			m_sendRecvMsgTypePair.Add(sendTypeStr, recvTypeStr);
+			//m_sendRecvMsgTypePair.Add(sendTypeStr, recvTypeStr);
+			AddMessageTypePair(sendTypeStr, recvTypeStr);
 		}
 
 		protected override Action<object> LookupRecvCallback(string typeStr)
@@ -82,7 +83,7 @@ namespace BakjeProtocol
 				throw new InvalidOperationException("Previous request not resolved");
 			}
 
-			m_expectedRecvMsgType	= m_sendRecvMsgTypePair[sendTypeStr];							// 응답 돌아올 때의 메세지 타입을 지정
+			m_expectedRecvMsgType	= LookupMessageTypePair(sendTypeStr);							// 응답 돌아올 때의 메세지 타입을 지정
 			m_recvCallback			= (recvobj) => recvProc(recvobj as IReceive<RecvParamT>);		// 응답 돌아올 때의 콜백 설정
 			
 			DoProcessSendPacket(sendTypeStr, (sendobj) =>											// Send 처리하기

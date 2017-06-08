@@ -36,6 +36,7 @@ namespace BakjeProtocol
 			{
 				AddMessageType<SendParamT>(sendTypeStr);
 			}
+			AddMessageTypePair(recvTypeStr, sendTypeStr);				// 메세지 타입 연관관계 등록
 			
 			AddRecvCallback<RecvParamT>(recvTypeStr, (recvobj) =>		// 패킷 받을 때의 함수를 추가한다.
 			{

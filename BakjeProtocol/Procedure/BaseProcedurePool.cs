@@ -31,6 +31,12 @@ namespace BakjeProtocol
 			void CallReceive(Packet packet, Action<Packet> responseDel = null);
 
 			/// <summary>
+			/// ProcedurePool 이 recv 과정에서 발생한 에러 처리를 하도록 한다.
+			/// 주의 : Client side에서 호출하도록 설계되었다. (Send 후에 Recv를 받는 상황)
+			/// </summary>
+			void CallReceiveServerError(string sendTypeStr);
+
+			/// <summary>
 			/// ProcedurePool 에서 보내려는 패킷을 처리할 델리게이트를 지정
 			/// </summary>
 			/// <param name="sendDel"></param>
@@ -100,6 +106,11 @@ namespace BakjeProtocol
 			public void CallSend(Packet packet)
 			{
 				m_sendDel(packet);
+			}
+
+			public void CallReceiveServerError(string sendTypeStr)
+			{
+				m_parent.ProcessReceiveServerError(sendTypeStr);
 			}
 		}
 
@@ -198,6 +209,7 @@ namespace BakjeProtocol
 		// Members
 
 		Dictionary<string, MessageTypeInfo>	m_typeInfoDict;				// 메세지 타입 정보 딕셔너리
+		Dictionary<string, string>			m_typePairDict;				// 타입 페어 정보 딕셔너리
 		Dictionary<string, Action<object>>	m_recvCallbackDict;			// 패킷 받았을 때 호출할 함수 딕셔너리
 		//Dictionary<string, Action<object>>	m_sendFunctionDict;			// 패킷 보낼 때 호출할 함수 딕셔너리
 
@@ -215,6 +227,7 @@ namespace BakjeProtocol
 			m_poolCtrl	= new PoolController(this);
 
 			m_typeInfoDict	= new Dictionary<string, MessageTypeInfo>();
+			m_typePairDict	= new Dictionary<string, string>();
 			m_recvCallbackDict	= new Dictionary<string, Action<object>>();
 			//m_sendFunctionDict	= new Dictionary<string, Action<object>>();
 		}
@@ -285,6 +298,30 @@ namespace BakjeProtocol
 			};
 
 			m_typeInfoDict[typeStr]	= typeInfo;
+		}
+
+		/// <summary>
+		/// 패킷 메세지 타입 문자열을 매칭해준다.
+		/// </summary>
+		/// <param name="typeStr1"></param>
+		/// <param name="typeStr2"></param>
+		protected void AddMessageTypePair(string typeStr1, string typeStr2)
+		{
+			ThrowExceptionIfAlreadyStarted();	// 시작하면 실행할 수 없음
+
+			m_typePairDict[typeStr1] = typeStr2;
+		}
+
+		/// <summary>
+		/// 등록된 메세지 타입 페어를 구한다.
+		/// </summary>
+		/// <param name="typeStr"></param>
+		/// <returns></returns>
+		protected string LookupMessageTypePair(string typeStr)
+		{
+			string retv = null;
+			m_typePairDict.TryGetValue(typeStr, out retv);
+			return retv;
 		}
 
 		/// <summary>
@@ -371,6 +408,25 @@ namespace BakjeProtocol
 			recvObj.responseCallback = responseDel;					// responseDel을 지정한 경우 세팅
 
 			var recvfunc	= LookupRecvCallback(recvObj.header.messageType);	// recv 처리 함수 찾기
+			recvfunc(recvObj);
+		}
+
+		/// <summary>
+		/// PoolController에서 receive과정 중 에러 처리가 필요해질 때 호출한다. header만 적절히 세팅한 더미 패킷을 만들어서 기존에 세팅한 recv 함수로 토스한다.
+		/// </summary>
+		private void ProcessReceiveServerError(string sendTypeStr)
+		{
+			if (!started)					// 시작한 경우에만 실행한다.
+				return;
+
+			var expectedRecvTypeStr	= LookupMessageTypePair(sendTypeStr);
+			var typeInfo			= LookupMessageType(expectedRecvTypeStr);
+
+			var packet				= new Packet();								// dummy 패킷을 만들어준다.
+			packet.header.code		= Packet.Header.Code.ServerSideError;		// Server side error가 벌어졌음
+			var recvObj				= typeInfo.funcMakeRecv(packet);			// 적절한 recvobj로 만들어준다.
+
+			var recvfunc	= LookupRecvCallback(expectedRecvTypeStr);			// recv 처리 함수 찾기
 			recvfunc(recvObj);
 		}
 

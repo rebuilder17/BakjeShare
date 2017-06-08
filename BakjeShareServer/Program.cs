@@ -263,15 +263,22 @@ namespace BakjeShareServer
 				{
 					stream.Write(buffer, 0, buffer.Length);
 				}
-
-				var response		= request.GetResponse() as HttpWebResponse;
-				using (var stream = response.GetResponseStream())
+				
+				try
 				{
-					var length		= (int)response.ContentLength;
-					var readbuf		= new byte[length];
-					stream.Read(readbuf, 0, length);
+					var response		= request.GetResponse() as HttpWebResponse;
+					using (var stream = response.GetResponseStream())
+					{
+						var length		= (int)response.ContentLength;
+						var readbuf		= new byte[length];
+						stream.Read(readbuf, 0, length);
 
-					bridge.m_poolCtrl.CallReceive(Packet.Unpack(readbuf));
+						bridge.m_poolCtrl.CallReceive(Packet.Unpack(readbuf));
+					}
+				}
+				catch(WebException e)							// 웹 연결이 에러 코드를 주면 Server Error로 처리한다.
+				{
+					bridge.m_poolCtrl.CallReceiveServerError(packet.header.messageType);
 				}
 			}
 
