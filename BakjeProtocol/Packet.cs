@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web.Script.Serialization;
+//using System.Web.Script.Serialization;
+using Newtonsoft.Json;
 
 namespace BakjeProtocol
 {
@@ -70,8 +71,7 @@ namespace BakjeProtocol
 		/// <param name="obj"></param>
 		public void SetJSON(object obj)
 		{
-			var json	= new JavaScriptSerializer();
-			m_plainText	= json.Serialize(obj);
+			m_plainText	= JsonConvert.SerializeObject(obj);
 		}
 
 		public string GetPlainText()
@@ -81,8 +81,7 @@ namespace BakjeProtocol
 
 		public object GetJSONData(Type type)
 		{
-			var json	= new JavaScriptSerializer();
-			return json.Deserialize(m_plainText, type);
+			return JsonConvert.DeserializeObject(m_plainText, type);
 		}
 
 		public T GetJSONData<T>()
@@ -158,7 +157,7 @@ namespace BakjeProtocol
 			totalLength			+= buf_dataCount.Length;	// 데이터 필드 길이
 
 			// 헤더 필드
-			var headerSrlized	= new JavaScriptSerializer().Serialize(header);
+			var headerSrlized	= JsonConvert.SerializeObject(header);
 			var headerBuffer	= Encoding.UTF8.GetBytes(headerSrlized);
 			var buf_headerSize	= SerializeUInt32((uint)headerBuffer.Length);
 			totalLength			+= buf_headerSize.Length;	// 헤더 필드 길이
@@ -258,7 +257,7 @@ namespace BakjeProtocol
 			var headerString	= Encoding.UTF8.GetString(headerBuffer);
 			pointer				+= (int)headerSize;
 
-			newPacket.header	= new JavaScriptSerializer().Deserialize<Header>(headerString);	// 헤더 JSON을 deserialize해서 실제 데이터로
+			newPacket.header	= JsonConvert.DeserializeObject<Header>(headerString);	// 헤더 JSON을 deserialize해서 실제 데이터로
 
 			// 텍스트
 			var textBuffer		= new byte[textSize];

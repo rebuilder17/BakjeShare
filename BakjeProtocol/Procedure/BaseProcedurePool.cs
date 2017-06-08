@@ -199,7 +199,7 @@ namespace BakjeProtocol
 
 		Dictionary<string, MessageTypeInfo>	m_typeInfoDict;				// 메세지 타입 정보 딕셔너리
 		Dictionary<string, Action<object>>	m_recvCallbackDict;			// 패킷 받았을 때 호출할 함수 딕셔너리
-		Dictionary<string, Action<object>>	m_sendFunctionDict;			// 패킷 보낼 때 호출할 함수 딕셔너리
+		//Dictionary<string, Action<object>>	m_sendFunctionDict;			// 패킷 보낼 때 호출할 함수 딕셔너리
 
 		PoolController			m_poolCtrl;
 
@@ -216,7 +216,7 @@ namespace BakjeProtocol
 
 			m_typeInfoDict	= new Dictionary<string, MessageTypeInfo>();
 			m_recvCallbackDict	= new Dictionary<string, Action<object>>();
-			m_sendFunctionDict	= new Dictionary<string, Action<object>>();
+			//m_sendFunctionDict	= new Dictionary<string, Action<object>>();
 		}
 
 		private void ThrowExceptionIfAlreadyStarted()
@@ -334,26 +334,26 @@ namespace BakjeProtocol
 			return m_recvCallbackDict[typeStr];
 		}
 
-		protected void AddSendFunction(string typeStr, Action<object> del)
-		{
-			ThrowExceptionIfAlreadyStarted();	// 시작하면 실행할 수 없음
+		//protected void AddSendFunction(string typeStr, Action<object> del)
+		//{
+		//	ThrowExceptionIfAlreadyStarted();	// 시작하면 실행할 수 없음
 
-			m_sendFunctionDict.Add(typeStr, del);
-		}
+		//	m_sendFunctionDict.Add(typeStr, del);
+		//}
 
-		protected void AddSendFunction<T>(string typeStr, Action<ISend<T>> del)
-			where T : class
-		{
-			AddSendFunction(typeStr, (sendobj) =>
-			{
-				del(sendobj as ISend<T>);
-			});
-		}
+		//protected void AddSendFunction<T>(string typeStr, Action<ISend<T>> del)
+		//	where T : class
+		//{
+		//	AddSendFunction(typeStr, (sendobj) =>
+		//	{
+		//		del(sendobj as ISend<T>);
+		//	});
+		//}
 
-		protected virtual Action<object> LookupSendCallback(string typeStr)
-		{
-			return m_sendFunctionDict[typeStr];
-		}
+		//protected virtual Action<object> LookupSendCallback(string typeStr)
+		//{
+		//	return m_sendFunctionDict[typeStr];
+		//}
 
 
 		/// <summary>

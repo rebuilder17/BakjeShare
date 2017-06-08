@@ -29,7 +29,7 @@ namespace BakjeProtocol.Auth
 			this.authKey	= newkey;
 			this.userType	= usertype;
 
-			SaveLocalAuthToken();
+			SaveLocalAuthToken(newkey, usertype);
 		}
 
 		public void Clear()
@@ -43,7 +43,7 @@ namespace BakjeProtocol.Auth
 		//
 
 		protected abstract void LoadLocalAuthToken(out string authKey, out UserType userType);
-		protected abstract void SaveLocalAuthToken();
+		protected abstract void SaveLocalAuthToken(string authKey, UserType userType);
 		protected abstract void ClearLocalAuthToken();
 	}
 }

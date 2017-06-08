@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BakjeClient.Login">
+    <ContentPage.Content>
+        <StackLayout>
+            <Label FontSize="60" Text="로그인" Margin="0,0,0,40" />
+
+            <Label FontSize="30" Text="Server" />
+            <Entry Placeholder="URL or IP" FontSize="30" />
+            
+            <Label FontSize="30" Text="ID" />
+            <Entry FontSize="30" />
+            <Label FontSize="30" Text="패스워드" />
+            <Entry IsPassword="True" FontSize="30" />
+
+            <Button Text="로그인" FontSize="30" Margin="0,40,0,0" HeightRequest="80" />
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

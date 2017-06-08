@@ -160,7 +160,7 @@ namespace BakjeShareServer
 					userType	= UserType.Guest;
 				}
 
-				protected override void SaveLocalAuthToken()
+				protected override void SaveLocalAuthToken(string key, UserType ut)
 				{
 
 				}
