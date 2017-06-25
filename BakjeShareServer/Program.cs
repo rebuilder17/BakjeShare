@@ -15,10 +15,37 @@ namespace BakjeShareServer
 	{
 		static void Main(string[] args)
 		{
-			RealServerTest();
+			RetrieveExternalIP();
+			InitializeServer();
 		}
 
-		static void RealServerTest()
+		static void RetrieveExternalIP()
+		{
+			Console.WriteLine("retrieve external IP via http://icanhazip.com/ ....");
+			try
+			{
+				var request		= WebRequest.CreateHttp("http://icanhazip.com/");
+				request.Timeout	= 5000;
+				request.Method	= "GET";
+				using (var response	= request.GetResponse())
+				{
+					using (var stream	= response.GetResponseStream())
+					{
+						var len			= response.ContentLength;
+						var buffer		= new byte[len];
+						stream.Read(buffer, 0, (int)len);
+
+						Console.WriteLine("Server External IP : {0}", Encoding.ASCII.GetString(buffer));
+					}
+				}
+			}
+			catch(WebException)
+			{
+				Console.WriteLine("cannot connect to http://icanhazip.com/ . You should get your external ip manually.");
+			}
+		}
+
+		static void InitializeServer()
 		{
 			var server		= new Http.Server();
 			var sqlHelper	= new SQL.SQLHelper();
@@ -32,108 +59,115 @@ namespace BakjeShareServer
 
 			server.Start();
 
-			Thread.Sleep(1000);
-			
-			var client		= new TestClient();
-
-			//client.SendCheckAuth();
-			//client.SendLoginRequest("defaultuser", "blaaah");
-			//client.SendCheckAuth();
-			//client.SendNewuser("newuser", "pass1234", "newuser@email.com");
-			//client.SendLoginRequest("newuser", "pass1234");
-			//client.SendDeleteUser();
-
-			//client.SendNewuser("user1", "user1", "user1@test.user");
-			//client.SendNewuser("user2", "user2", "user2@test.user");
-
-			//client.SendLoginRequest("user1", "user1");
-			//var postid = client.SendNewPost("test posting by user1 (01)", "테스트 포스팅입니다.", null, null);
-			//client.SendNewPost("test posting by user1 (02)", "테스트 포스팅입니다. 222222", null, null);
-			//client.SendNewPost("으아아아아아아악", "컄", null, null);
-			//client.SendAddTag(postid, "태그1");
-			//client.SendAddTag(postid, "태그2");
-			//client.SendAddTag(postid, "테스트태그");
-
-			//client.SendLoginRequest("user2", "user2");
-			//client.SendAddTag(postid, "다른유저태그");
-
-			//client.SendLoginRequest("user1", "user1");
-			//var postings	= client.SendLookupPosting(null, null, null, null, 0, 20);
-			//foreach (var entry in postings.entries)
-			//{
-			//	Console.Out.WriteLine("{0} : {1} by {2} (date : {3})", entry.postID, entry.title, entry.author, entry.postingTime);
-			//}
-			//Console.Out.WriteLine("page {0} of {1}", postings.currentPage + 1, postings.totalPage);
-
-			//client.SendLoginRequest("user1", "user1");
-			//client.SendFileReport_Bug("버그좀잡아주세요;", "참내;;;");
-			//client.SendLoginRequest("user2", "user2");
-			//client.SendFileReport_User("얘 리폿좀요", "욕해요", "user1", ReqFileReport.UserReportReason.Etc);
-			//client.SendLoginRequest("defaultuser", "blaaah");
-			//client.SendFileReport_Posting("포스팅 극혐", "내려주세요", 11, ReqFileReport.PostReportReason.Etc);
-			//client.SendLookupReport();
-
-			//client.SendLoginRequest("admin", "admin");
-			//client.SendCloseReport(5);
-			//var reports = client.SendLookupReport();
-			//foreach(var entry in reports.entries)
-			//{
-			//	Console.Out.WriteLine("{0} : {1} by {2} type : {3}", entry.reportID, entry.shortdesc, entry.reporterID, entry.type);
-			//}
-
-			//var report = client.SendShowReport(5);
-			//Console.Out.WriteLine("title : {0}", report.shortdesc);
-			//switch(report.type)
-			//{
-			//	case ReqFileReport.Type.Bug:
-			//		Console.Out.WriteLine("bug report");
-			//		break;
-			//	case ReqFileReport.Type.Posting:
-			//		Console.Out.WriteLine("reports posting : {0}", report.repPostingID);
-			//		break;
-			//	case ReqFileReport.Type.User:
-			//		Console.Out.WriteLine("reports user : {0}", report.repUserID);
-			//		break;
-			//}
-			//Console.Out.WriteLine("desc : {0}", report.longdesc);
-
-			//client.SendLoginRequest("admin", "admin");
-			//client.SendPostNotice("임시점검", "안해요");
-			//client.SendDeleteNotice(2);
-			//var notilist = client.SendLookupNotice();
-			//foreach(var entry in notilist.entries)
-			//{
-			//	Console.Out.WriteLine("{0} {1} (time : {2}", entry.noticeID, entry.title, entry.datetime);
-			//}
-
-			//var notice = client.SendShowNotice(3);
-			//Console.Out.WriteLine("title : {0}\ndate : {1}\ndetail : {2}", notice.title, notice.datetime, notice.desc);
-
-			//client.SendLoginRequest("user2", "user2");
-			//client.SendNewPost("비밀글", "캬", "", true);
-			client.SendLoginRequest("admin", "admin");
-			client.SendBlindUser("user2", false);
-			client.SendBlindUser("user1", false);
-			client.SendBlindPost(9, true);
-			var postings	= client.SendLookupPosting(null, null, null, null, 0, 20);
-			foreach (var entry in postings.entries)
-			{
-				Console.Out.WriteLine("{0} : {1} by {2} (date : {3}) {4}", entry.postID, entry.title, entry.author, entry.postingTime, entry.isBlinded? "(blinded)" : "");
-			}
-			Console.Out.WriteLine("page {0} of {1}", postings.currentPage + 1, postings.totalPage);
-
-			client.SendLoginRequest("user1", "user1");
-			postings	= client.SendLookupPosting(null, null, null, null, 0, 20);
-			foreach (var entry in postings.entries)
-			{
-				Console.Out.WriteLine("{0} : {1} by {2} (date : {3}) {4}", entry.postID, entry.title, entry.author, entry.postingTime, entry.isBlinded ? "(blinded)" : "");
-			}
-			Console.Out.WriteLine("page {0} of {1}", postings.currentPage + 1, postings.totalPage);
-
-			Console.Out.WriteLine("any key to close...");
+			Console.Out.WriteLine("Server started. any key to close...");
 			Console.ReadKey();
 			server.Stop();
 		}
+
+		//static void RealServerTest()
+		//{
+		//	Thread.Sleep(1000);
+			
+		//	var client		= new TestClient();
+
+		//	//client.SendCheckAuth();
+		//	//client.SendLoginRequest("defaultuser", "blaaah");
+		//	//client.SendCheckAuth();
+		//	//client.SendNewuser("newuser", "pass1234", "newuser@email.com");
+		//	//client.SendLoginRequest("newuser", "pass1234");
+		//	//client.SendDeleteUser();
+
+		//	//client.SendNewuser("user1", "user1", "user1@test.user");
+		//	//client.SendNewuser("user2", "user2", "user2@test.user");
+
+		//	//client.SendLoginRequest("user1", "user1");
+		//	//var postid = client.SendNewPost("test posting by user1 (01)", "테스트 포스팅입니다.", null, null);
+		//	//client.SendNewPost("test posting by user1 (02)", "테스트 포스팅입니다. 222222", null, null);
+		//	//client.SendNewPost("으아아아아아아악", "컄", null, null);
+		//	//client.SendAddTag(postid, "태그1");
+		//	//client.SendAddTag(postid, "태그2");
+		//	//client.SendAddTag(postid, "테스트태그");
+
+		//	//client.SendLoginRequest("user2", "user2");
+		//	//client.SendAddTag(postid, "다른유저태그");
+
+		//	//client.SendLoginRequest("user1", "user1");
+		//	//var postings	= client.SendLookupPosting(null, null, null, null, 0, 20);
+		//	//foreach (var entry in postings.entries)
+		//	//{
+		//	//	Console.Out.WriteLine("{0} : {1} by {2} (date : {3})", entry.postID, entry.title, entry.author, entry.postingTime);
+		//	//}
+		//	//Console.Out.WriteLine("page {0} of {1}", postings.currentPage + 1, postings.totalPage);
+
+		//	//client.SendLoginRequest("user1", "user1");
+		//	//client.SendFileReport_Bug("버그좀잡아주세요;", "참내;;;");
+		//	//client.SendLoginRequest("user2", "user2");
+		//	//client.SendFileReport_User("얘 리폿좀요", "욕해요", "user1", ReqFileReport.UserReportReason.Etc);
+		//	//client.SendLoginRequest("defaultuser", "blaaah");
+		//	//client.SendFileReport_Posting("포스팅 극혐", "내려주세요", 11, ReqFileReport.PostReportReason.Etc);
+		//	//client.SendLookupReport();
+
+		//	//client.SendLoginRequest("admin", "admin");
+		//	//client.SendCloseReport(5);
+		//	//var reports = client.SendLookupReport();
+		//	//foreach(var entry in reports.entries)
+		//	//{
+		//	//	Console.Out.WriteLine("{0} : {1} by {2} type : {3}", entry.reportID, entry.shortdesc, entry.reporterID, entry.type);
+		//	//}
+
+		//	//var report = client.SendShowReport(5);
+		//	//Console.Out.WriteLine("title : {0}", report.shortdesc);
+		//	//switch(report.type)
+		//	//{
+		//	//	case ReqFileReport.Type.Bug:
+		//	//		Console.Out.WriteLine("bug report");
+		//	//		break;
+		//	//	case ReqFileReport.Type.Posting:
+		//	//		Console.Out.WriteLine("reports posting : {0}", report.repPostingID);
+		//	//		break;
+		//	//	case ReqFileReport.Type.User:
+		//	//		Console.Out.WriteLine("reports user : {0}", report.repUserID);
+		//	//		break;
+		//	//}
+		//	//Console.Out.WriteLine("desc : {0}", report.longdesc);
+
+		//	//client.SendLoginRequest("admin", "admin");
+		//	//client.SendPostNotice("임시점검", "안해요");
+		//	//client.SendDeleteNotice(2);
+		//	//var notilist = client.SendLookupNotice();
+		//	//foreach(var entry in notilist.entries)
+		//	//{
+		//	//	Console.Out.WriteLine("{0} {1} (time : {2}", entry.noticeID, entry.title, entry.datetime);
+		//	//}
+
+		//	//var notice = client.SendShowNotice(3);
+		//	//Console.Out.WriteLine("title : {0}\ndate : {1}\ndetail : {2}", notice.title, notice.datetime, notice.desc);
+
+		//	//client.SendLoginRequest("user2", "user2");
+		//	//client.SendNewPost("비밀글", "캬", "", true);
+		//	client.SendLoginRequest("admin", "admin");
+		//	client.SendBlindUser("user2", false);
+		//	client.SendBlindUser("user1", false);
+		//	client.SendBlindPost(9, true);
+		//	var postings	= client.SendLookupPosting(null, null, null, null, 0, 20);
+		//	foreach (var entry in postings.entries)
+		//	{
+		//		Console.Out.WriteLine("{0} : {1} by {2} (date : {3}) {4}", entry.postID, entry.title, entry.author, entry.postingTime, entry.isBlinded? "(blinded)" : "");
+		//	}
+		//	Console.Out.WriteLine("page {0} of {1}", postings.currentPage + 1, postings.totalPage);
+
+		//	client.SendLoginRequest("user1", "user1");
+		//	postings	= client.SendLookupPosting(null, null, null, null, 0, 20);
+		//	foreach (var entry in postings.entries)
+		//	{
+		//		Console.Out.WriteLine("{0} : {1} by {2} (date : {3}) {4}", entry.postID, entry.title, entry.author, entry.postingTime, entry.isBlinded ? "(blinded)" : "");
+		//	}
+		//	Console.Out.WriteLine("page {0} of {1}", postings.currentPage + 1, postings.totalPage);
+
+		//	Console.Out.WriteLine("any key to close...");
+		//	Console.ReadKey();
+		//	server.Stop();
+		//}
 
 		class TestClient
 		{

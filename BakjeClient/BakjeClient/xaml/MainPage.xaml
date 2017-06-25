@@ -4,8 +4,11 @@
              xmlns:local="clr-namespace:BakjeClient"
              x:Class="BakjeClient.MainPage">
 
-	<Label Text="Welcome to Xamarin Forms!" 
-           VerticalOptions="Center" 
-           HorizontalOptions="Center" />
+    <StackLayout>
+        <Label FontSize="40" Text="BakjeShare" Margin="0,0,0,40" HorizontalOptions="Center" />
+        <Label FontSize="30" Text="Server" />
+        <Entry Placeholder="URL or IP" FontSize="30" Text="{Binding Path=urlOrIP}" />
 
+        <Button Text="서비스 접속" FontSize="30" Margin="0,40,0,0" HeightRequest="80" Clicked="Button_Clicked" />
+    </StackLayout>
 </ContentPage>

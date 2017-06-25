@@ -86,7 +86,7 @@ namespace BakjeShareServer.Http
 		/// </summary>
 		public void Start()
 		{
-			var listeningURL	= "http://+:8080/";
+			var listeningURL	= "http://+:8084/";
 			m_listener.Prefixes.Add(listeningURL);
 			try
 			{
