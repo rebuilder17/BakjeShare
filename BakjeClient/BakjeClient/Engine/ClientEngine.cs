@@ -35,6 +35,7 @@ namespace BakjeClient.Engine
 				{
 					dict.Remove(c_keyAuthLevel);
 				}
+				App.Current.SavePropertiesAsync();
 			}
 
 			protected override void LoadLocalAuthToken(out string authKey, out UserType userType)
@@ -43,11 +44,11 @@ namespace BakjeClient.Engine
 
 				var loadedKey	= (object)null;
 				dict.TryGetValue(c_keyAuthKey, out loadedKey);
-				authKey			= (loadedKey ?? null) as string;
+				authKey			= loadedKey == null ? null : (loadedKey as string);
 
 				var loadedLevel	= (object)null;
 				dict.TryGetValue(c_keyAuthLevel, out loadedLevel);
-				userType		= (UserType)((int)(loadedLevel ?? 0));
+				userType		= loadedLevel == null? UserType.Guest : (UserType)((int)loadedLevel);
 			}
 
 			protected override void SaveLocalAuthToken(string newkey, UserType ut)
@@ -72,6 +73,7 @@ namespace BakjeClient.Engine
 				{
 					m_pp					= pool;
 					m_httpClient			= new HttpClient(new ModernHttpClient.NativeMessageHandler());
+					//m_httpClient			= new HttpClient();
 					m_httpClient.Timeout	= TimeSpan.FromMilliseconds(5000);
 				}
 
@@ -193,7 +195,7 @@ namespace BakjeClient.Engine
 
 		public ClientEngine()
 		{
-			m_authClient	= new AuthClient();
+			
 		}
 
 		/// <summary>
@@ -230,7 +232,8 @@ namespace BakjeClient.Engine
 
 		public void Initialize()
 		{
-			auth	= new Auth(this);
+			m_authClient	= new AuthClient();
+			auth			= new Auth(this);
 		}
 	}
 }

@@ -22,6 +22,7 @@ namespace BakjeClient.Engine
 		public interface IAuth
 		{
 			AuthCheckResult CheckAuth();
+			void ClearAuth();
 			bool RequestLogin(string userid, string password);
 		}
 
@@ -37,6 +38,11 @@ namespace BakjeClient.Engine
 			{
 				AddParamPair<ReqLogin, RespLogin>();
 				AddParamPair<EmptyParam, EmptyParam>("ReqCheckAuth", "RespCheckAuth");
+			}
+
+			public void ClearAuth()
+			{
+				authClient.Clear();
 			}
 
 			public AuthCheckResult CheckAuth()

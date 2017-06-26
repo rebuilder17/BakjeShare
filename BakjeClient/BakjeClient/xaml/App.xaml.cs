@@ -20,17 +20,17 @@ namespace BakjeClient
 		public App()
 		{
 			instance	= this;
-			core		= new Engine.ClientEngine();
-			core.Initialize();
 			
 			InitializeComponent();
-
-			MainPage	= new ConnectPage();
 		}
 
 		protected override void OnStart()
 		{
 			// Handle when your app starts
+
+			core		= new Engine.ClientEngine();
+			core.Initialize();
+			MainPage	= new ConnectPage();
 		}
 
 		protected override void OnSleep()
@@ -71,52 +71,52 @@ namespace BakjeClient
 		}
 		//
 
-		public static void ShowLoading()
+		private async static Task ShowLoading()
 		{
 			if (instance.m_loadingPopup == null)
 			{
 				instance.m_loadingPopup	= new Popup.LoadingPopup();
-				instance.MainPage.Navigation.PushPopupAsync(instance.m_loadingPopup);
+				await instance.MainPage.Navigation.PushPopupAsync(instance.m_loadingPopup);
 			}
 		}
 
-		public static void HideLoading()
+		private async static Task HideLoading()
 		{
 			if (instance.m_loadingPopup != null)
 			{
-				instance.MainPage.Navigation.PopPopupAsync();
+				await instance.MainPage.Navigation.PopPopupAsync();
 				instance.m_loadingPopup = null;
 			}
 		}
 
 		public static async Task RunLongTask(Action action)
 		{
-			ShowLoading();
+			await ShowLoading();
 
 			try
 			{
 				await Task.Run(action);
-				HideLoading();
+				await HideLoading();
 			}
 			catch(Exception e)
 			{
-				HideLoading();
+				await HideLoading();
 				throw e;
 			}
 		}
 
 		public static async Task RunLongTask(Func<Task> action)
 		{
-			ShowLoading();
+			await ShowLoading();
 
 			try
 			{
 				await Task.Run(action);
-				HideLoading();
+				await HideLoading();
 			}
 			catch(Exception e)
 			{
-				HideLoading();
+				await HideLoading();
 				throw e;
 			}
 		}

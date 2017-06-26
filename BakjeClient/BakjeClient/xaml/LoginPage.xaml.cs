@@ -42,6 +42,7 @@ namespace BakjeClient
 			{
 				await DisplayAlert("로그인", "로그인에 성공하였습니다. "
 					+ (core.authLevel == BakjeProtocol.Auth.UserType.Registered ? "(회원)" : "(관리자)"), "확인");
+				App.GetMainPage();
 			}
 			else
 			{

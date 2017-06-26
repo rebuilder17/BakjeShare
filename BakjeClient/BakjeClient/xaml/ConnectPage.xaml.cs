@@ -61,6 +61,7 @@ namespace BakjeClient
 					{
 						case Engine.ClientEngine.AuthCheckResult.OK:
 							await DisplayAlert("로그인", "로그인 확인 완료", "확인");
+							App.GetMainPage();
 							break;
 
 						case Engine.ClientEngine.AuthCheckResult.LoginNeeded:

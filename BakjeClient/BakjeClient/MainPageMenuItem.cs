@@ -11,9 +11,9 @@ namespace BakjeClient
 	{
 		public MainPageMenuItem()
 		{
-			TargetType = typeof(MainPageDetail);
+			//TargetType = typeof(MainPageDetail);
 		}
-		public int Id { get; set; }
+		public string Id { get; set; }
 		public string Title { get; set; }
 
 		public Type TargetType { get; set; }
