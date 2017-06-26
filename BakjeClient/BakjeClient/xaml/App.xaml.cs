@@ -42,9 +42,18 @@ namespace BakjeClient
 			// Handle when your app resumes
 		}
 
+		public static Page GetServerUrlPage()
+		{
+			var navPage			= new NavigationPage(new MainPage());
+			instance.MainPage	= navPage;
+			navPage.PopToRootAsync();
+
+			return navPage;
+		}
+
 		public static Page GetLoginPage()
 		{
-			var navPage			= new NavigationPage(new Login());
+			var navPage			= new NavigationPage(new LoginPage());
 			instance.MainPage	= navPage;
 			navPage.PopToRootAsync();
 
