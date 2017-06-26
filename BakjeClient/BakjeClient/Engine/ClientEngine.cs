@@ -123,9 +123,11 @@ namespace BakjeClient.Engine
 					//allDone.WaitOne();
 				}
 			}
+			//
+
+			private ClientProcedurePool	m_procPool;
 
 			protected ClientEngine			engine { get; private set; }
-			protected ClientProcedurePool	procPool { get; private set; }
 			protected AuthClient authClient
 			{
 				get
@@ -143,15 +145,15 @@ namespace BakjeClient.Engine
 			public AutoProcedurePool(ClientEngine engine)
 			{
 				this.engine	= engine;
-				procPool	= new ClientProcedurePool();
+				m_procPool	= new ClientProcedurePool();
 
 				InitParamPairs();
 
 				var bridge	= new Bridge(this);
-				procPool.SetBridge(bridge);
-				procPool.SetAuthClientObject(authClient);
+				m_procPool.SetBridge(bridge);
+				m_procPool.SetAuthClientObject(authClient);
 				bridge.SetupSendDelegate();
-				procPool.Start();
+				m_procPool.Start();
 			}
 
 			protected void AddParamPair<SendParamT, RecvParamT>(string sendTypeStr = null, string recvTypeStr = null)
@@ -164,7 +166,21 @@ namespace BakjeClient.Engine
 				if (recvTypeStr == null)
 					recvTypeStr = typeof(RecvParamT).Name;
 
-				procPool.AddPairParamType<SendParamT, RecvParamT>(sendTypeStr, recvTypeStr);
+				m_procPool.AddPairParamType<SendParamT, RecvParamT>(sendTypeStr, recvTypeStr);
+			}
+
+			protected void DoRequest<SendParamT, RecvParamT>(string sendTypeStr, Action<BaseProcedurePool.ISend<SendParamT>> sendFunc, Action<BaseProcedurePool.IReceive<RecvParamT>> recvFunc)
+				where SendParamT : class
+				where RecvParamT : class
+			{
+				m_procPool.DoRequest<SendParamT, RecvParamT>(sendTypeStr, sendFunc, recvFunc);
+			}
+
+			protected void DoRequest<SendParamT, RecvParamT>(Action<BaseProcedurePool.ISend<SendParamT>> sendFunc, Action<BaseProcedurePool.IReceive<RecvParamT>> recvFunc)
+				where SendParamT : class
+				where RecvParamT : class
+			{
+				DoRequest<SendParamT, RecvParamT>(typeof(SendParamT).Name, sendFunc, recvFunc);
 			}
 
 			/// <summary>
@@ -190,12 +206,21 @@ namespace BakjeClient.Engine
 		}
 
 		public IAuth auth { get; private set; }
-
+		public IUser user { get; private set; }
+		public IPost post { get; private set; }
 
 
 		public ClientEngine()
 		{
 			
+		}
+		
+		public void Initialize()
+		{
+			m_authClient	= new AuthClient();
+			auth			= new Auth(this);
+			user			= new User(this);
+			post			= new Post(this);
 		}
 
 		/// <summary>
@@ -227,13 +252,6 @@ namespace BakjeClient.Engine
 			{
 				serverURL	= string.Format("http://{0}:8084", value);	// IP 주소를 써서 url을 설정한다.
 			}
-		}
-		//
-
-		public void Initialize()
-		{
-			m_authClient	= new AuthClient();
-			auth			= new Auth(this);
 		}
 	}
 }

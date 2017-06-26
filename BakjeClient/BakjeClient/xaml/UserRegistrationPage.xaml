@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BakjeClient.UserRegistrationPage">
+    <ContentPage.Content>
+        <StackLayout>
+            <Label FontSize="40" Text="회원가입" Margin="0,0,0,20" />
+
+            <Label FontSize="20" Text="ID" />
+            <Entry FontSize="20" Text="{Binding id}" />
+            <Label FontSize="20" Text="E-mail" />
+            <Entry FontSize="20" Text="{Binding email}" />
+            <Label FontSize="20" Text="패스워드" />
+            <Entry IsPassword="True" FontSize="20" Text="{Binding password}" />
+            <Label FontSize="20" Text="패스워드 확인" />
+            <Entry IsPassword="True" FontSize="20" Text="{Binding passwordConfirm}" />
+            
+
+            <Button Text="가입" FontSize="30" Margin="0,20,0,0" HeightRequest="60" Clicked="BtnRegister_Clicked" />
+            <Button Text="취소" FontSize="30" Margin="0,10,0,0" HeightRequest="60" Clicked="BtnCancel_Clicked" />
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

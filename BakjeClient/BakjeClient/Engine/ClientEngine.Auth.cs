@@ -49,7 +49,7 @@ namespace BakjeClient.Engine
 			{
 				var result = AuthCheckResult.None;
 
-				procPool.DoRequest<EmptyParam, EmptyParam>("ReqCheckAuth",
+				DoRequest<EmptyParam, EmptyParam>("ReqCheckAuth",
 					(send) =>
 					{
 
@@ -80,7 +80,7 @@ namespace BakjeClient.Engine
 			{
 				var result = false;
 
-				procPool.DoRequest<ReqLogin, RespLogin>("ReqLogin", (sendObj) =>
+				DoRequest<ReqLogin, RespLogin>((sendObj) =>
 				{
 					sendObj.SetParameter(new ReqLogin() { userid = userid, password = password });
 				},

@@ -33,6 +33,7 @@ namespace BakjeClient
 			{
 				MenuItems = new ObservableCollection<MainPageMenuItem>();
 
+				MenuItems.Add(new MainPageMenuItem { Id = "recentPostings", Title = "최근 박제 보기" });
 				MenuItems.Add(new MainPageMenuItem { Id = "logout", Title = "로그아웃" });
 			}
 

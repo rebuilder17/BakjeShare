@@ -86,7 +86,7 @@ namespace BakjeShareServer.SQL
 			m_sql.RunSqlSession((bridge) =>
 			{
 				var cmd	= bridge.CreateCommand();
-				cmd.CommandText	= "select authkey from iduser where authkey = @key";
+				cmd.CommandText	= "select iduser from authkeys where authkey = @key";
 				cmd.Parameters.AddWithValue("@key", authkey);
 				var reader	= cmd.ExecuteReader();
 

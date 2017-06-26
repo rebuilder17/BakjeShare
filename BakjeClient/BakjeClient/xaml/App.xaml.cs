@@ -30,7 +30,7 @@ namespace BakjeClient
 
 			core		= new Engine.ClientEngine();
 			core.Initialize();
-			MainPage	= new ConnectPage();
+			MainPage	= new NavigationPage(new ConnectPage());
 		}
 
 		protected override void OnSleep()
@@ -63,11 +63,13 @@ namespace BakjeClient
 
 		public static Page GetMainPage()
 		{
-			var navPage			= new NavigationPage(new MainPage());
-			instance.MainPage	= navPage;
-			navPage.PopToRootAsync();
+			//var navPage			= new NavigationPage(new MainPage());
+			//instance.MainPage	= navPage;
+			//navPage.PopToRootAsync();
 
-			return navPage;
+			//return navPage;
+			instance.MainPage		= new MainPage();
+			return instance.MainPage;
 		}
 		//
 

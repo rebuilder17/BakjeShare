@@ -48,6 +48,16 @@ namespace BakjeProtocol
 			AddMessageTypePair(sendTypeStr, recvTypeStr);
 		}
 
+		/// <summary>
+		/// 해당 sendTypeStr 식별자로 등록된 pair가 있는지 구한다.
+		/// </summary>
+		/// <param name="sendTypeStr"></param>
+		/// <returns></returns>
+		public bool CheckPairForSendTypeAdded(string sendTypeStr)
+		{
+			return LookupMessageTypePair(sendTypeStr) != null;
+		}
+
 		protected override Action<object> LookupRecvCallback(string typeStr)
 		{
 			//return base.LookupRecvCallback(typeStr);
@@ -79,7 +89,6 @@ namespace BakjeProtocol
 		/// <param name="recvProc"></param>
 		public void DoRequest<SendParamT, RecvParamT>(string sendTypeStr, Action<ISend<SendParamT>> sendProc, Action<IReceive<RecvParamT>> recvProc)
 		{
-			Console.WriteLine("DoRequest ... m_recvCallback : {0}", m_recvCallback);
 			if (m_recvCallback != null)
 			{
 				throw new InvalidOperationException("Previous request not resolved");

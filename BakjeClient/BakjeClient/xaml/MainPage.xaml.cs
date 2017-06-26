@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
+using BakjeProtocol.Parameters;
 
 namespace BakjeClient
 {
@@ -48,6 +49,8 @@ namespace BakjeClient
 			}
 			else
 			{											// 지정하지 않은 경우엔 등록한 액션 실행
+				IsPresented = false;
+
 				if (m_idToAsyncDict.ContainsKey(item.Id))
 				{
 					await m_idToAsyncDict[item.Id]();
@@ -56,8 +59,6 @@ namespace BakjeClient
 				{
 					m_idToActionDict[item.Id]();
 				}
-
-				IsPresented = false;
 			}
 
 			MasterPage.ListView.SelectedItem = null;
@@ -65,6 +66,24 @@ namespace BakjeClient
 
 		private void InitActions()
 		{
+			AddAsyncAction("recentPostings", async () =>
+			{
+				RespLookupPosting result = null;
+				await App.RunLongTask(() =>
+				{
+					result = App.instance.core.post.LookupPosting(null);
+				});
+
+				if (result == null)
+				{
+					await DisplayAlert("오류", "포스팅을 읽어올 수 없습니다.", "확인");
+				}
+				else
+				{
+					Detail = new NavigationPage(new PostingListPage(null, result));
+				}
+			});
+
 			AddAsyncAction("logout", async () =>
 			{
 				await Task.Run(() =>
