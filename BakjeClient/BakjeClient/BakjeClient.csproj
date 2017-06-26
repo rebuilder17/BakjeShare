@@ -37,16 +37,16 @@
   <ItemGroup>
     <Compile Include="Engine\ClientEngine.Auth.cs" />
     <Compile Include="Engine\ClientEngine.cs" />
-    <Compile Include="MainPage.xaml.cs">
+    <Compile Include="xaml\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MainPageDetail.xaml.cs">
+    <Compile Include="xaml\MainPageDetail.xaml.cs">
       <DependentUpon>MainPageDetail.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MainPageMaster.xaml.cs">
+    <Compile Include="xaml\MainPageMaster.xaml.cs">
       <DependentUpon>MainPageMaster.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MainPageMenuItem.cs" />
+    <Compile Include="xaml\MainPageMenuItem.cs" />
     <Compile Include="Popup\LoadingPopup.cs" />
     <Compile Include="xaml\App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
@@ -111,19 +111,19 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MainPage.xaml">
+    <EmbeddedResource Include="xaml\MainPage.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MainPageMaster.xaml">
+    <EmbeddedResource Include="xaml\MainPageMaster.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MainPageDetail.xaml">
+    <EmbeddedResource Include="xaml\MainPageDetail.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
