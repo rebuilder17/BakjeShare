@@ -105,6 +105,10 @@ namespace BakjeClient.Engine
 						var readbuf		= readTask.Result;
 						bridge.m_poolCtrl.CallReceive(Packet.Unpack(readbuf));
 					}
+					catch (FormatException formatEx)			// FormatException - url 잘못되었을시... 이건 외부로 토스
+					{
+						throw formatEx;
+					}
 					catch (Exception)							// 웹 연결이 에러 코드를 주면 Server Error로 처리한다.
 					{
 						bridge.m_poolCtrl.CallReceiveServerError(packet.header.messageType);
@@ -127,6 +131,7 @@ namespace BakjeClient.Engine
 					return engine.m_authClient;
 				}
 			}
+
 			/// <summary>
 			/// 프로시저 호출할 url (상속해서 지정해줘야한다)
 			/// </summary>
@@ -173,7 +178,14 @@ namespace BakjeClient.Engine
 		public string serverURL { get; private set; }
 
 		private AuthClient m_authClient;					// Auth 관리자
-
+		
+		/// <summary>
+		/// 현재 획득한 유저 권한 (로컬)
+		/// </summary>
+		public BakjeProtocol.Auth.UserType authLevel
+		{
+			get { return m_authClient.userType; }
+		}
 
 		public IAuth auth { get; private set; }
 

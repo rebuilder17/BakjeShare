@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BakjeProtocol.Parameters;
+using BakjeProtocol;
 
 namespace BakjeClient.Engine
 {
@@ -21,7 +22,7 @@ namespace BakjeClient.Engine
 		public interface IAuth
 		{
 			AuthCheckResult CheckAuth();
-			void SendLoginRequest(string userid, string password);
+			bool RequestLogin(string userid, string password);
 		}
 
 		protected class Auth : AutoProcedurePool, IAuth
@@ -69,9 +70,31 @@ namespace BakjeClient.Engine
 				return result;
 			}
 
-			public void SendLoginRequest(string userid, string password)
+			public bool RequestLogin(string userid, string password)
 			{
-				throw new NotImplementedException();
+				var result = false;
+
+				procPool.DoRequest<ReqLogin, RespLogin>("ReqLogin", (sendObj) =>
+				{
+					sendObj.SetParameter(new ReqLogin() { userid = userid, password = password });
+				},
+					(recvObj) =>
+					{
+						if (recvObj.header.code == Packet.Header.Code.OK)			// 로그인 성공
+						{
+							var key	= recvObj.param.authKey;
+							var ut	= recvObj.param.userType;
+							authClient.SetNew(key, ut);
+
+							result = true;
+						}
+						else
+						{															// 로그인 실패
+							result = false;
+						}
+					});
+
+				return result;
 			}
 		}
 	}

@@ -7,7 +7,7 @@ using Xamarin.Forms;
 
 namespace BakjeClient
 {
-	public partial class MainPage : ContentPage
+	public partial class ConnectPage : ContentPage
 	{
 		private class ViewModel
 		{
@@ -32,7 +32,7 @@ namespace BakjeClient
 
 		ViewModel		m_viewModel;
 
-		public MainPage()
+		public ConnectPage()
 		{
 			InitializeComponent();
 			m_viewModel		= new ViewModel();
@@ -47,20 +47,15 @@ namespace BakjeClient
 
 				var core	= App.instance.core;
 
-				App.ShowLoading();
 				var result = Engine.ClientEngine.AuthCheckResult.None;
 
 				try
 				{
-					await Task.Run(() =>
+					await App.RunLongTask(() =>
 					{
 						core.SetServerURLorIP(m_viewModel.urlOrIP ?? "");
 						result = core.auth.CheckAuth();
 					});
-
-					App.HideLoading();
-
-					//await DisplayAlert("BakjeShare", core.serverURL, "OK");
 
 					switch (result)
 					{
@@ -70,6 +65,7 @@ namespace BakjeClient
 
 						case Engine.ClientEngine.AuthCheckResult.LoginNeeded:
 							await DisplayAlert("로그인 필요", "로그인해야 합니다.", "확인");
+							App.GetLoginPage();
 							break;
 
 						case Engine.ClientEngine.AuthCheckResult.CannotConnect:
@@ -83,13 +79,11 @@ namespace BakjeClient
 				}
 				catch(FormatException)
 				{
-					App.HideLoading();
 					await DisplayAlert("오류", "url 혹은 ip 주소 형식이 잘못되었습니다.", "확인");
 				}
 			}
 			catch(Exception ex)
 			{
-				int a = 0;
 				await DisplayAlert("!!", ex.ToString(), "!!");
 			}
 		}

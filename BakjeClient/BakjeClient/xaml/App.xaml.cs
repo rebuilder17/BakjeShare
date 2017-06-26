@@ -5,6 +5,7 @@ using System.Text;
 
 using Xamarin.Forms;
 using Rg.Plugins.Popup.Extensions;
+using System.Threading.Tasks;
 
 namespace BakjeClient
 {
@@ -21,10 +22,10 @@ namespace BakjeClient
 			instance	= this;
 			core		= new Engine.ClientEngine();
 			core.Initialize();
-
+			
 			InitializeComponent();
 
-			MainPage	= new BakjeClient.MainPage();
+			MainPage	= new ConnectPage();
 		}
 
 		protected override void OnStart()
@@ -42,9 +43,9 @@ namespace BakjeClient
 			// Handle when your app resumes
 		}
 
-		public static Page GetServerUrlPage()
+		public static Page GetConnectPage()
 		{
-			var navPage			= new NavigationPage(new MainPage());
+			var navPage			= new NavigationPage(new ConnectPage());
 			instance.MainPage	= navPage;
 			navPage.PopToRootAsync();
 
@@ -59,6 +60,16 @@ namespace BakjeClient
 
 			return navPage;
 		}
+
+		public static Page GetMainPage()
+		{
+			var navPage			= new NavigationPage(new MainPage());
+			instance.MainPage	= navPage;
+			navPage.PopToRootAsync();
+
+			return navPage;
+		}
+		//
 
 		public static void ShowLoading()
 		{
@@ -75,6 +86,38 @@ namespace BakjeClient
 			{
 				instance.MainPage.Navigation.PopPopupAsync();
 				instance.m_loadingPopup = null;
+			}
+		}
+
+		public static async Task RunLongTask(Action action)
+		{
+			ShowLoading();
+
+			try
+			{
+				await Task.Run(action);
+				HideLoading();
+			}
+			catch(Exception e)
+			{
+				HideLoading();
+				throw e;
+			}
+		}
+
+		public static async Task RunLongTask(Func<Task> action)
+		{
+			ShowLoading();
+
+			try
+			{
+				await Task.Run(action);
+				HideLoading();
+			}
+			catch(Exception e)
+			{
+				HideLoading();
+				throw e;
 			}
 		}
 	}
