@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Rg.Plugins.Popup.Extensions;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 using BakjeProtocol.Parameters;
@@ -196,6 +196,70 @@ namespace BakjeClient
 						}
 					}
 					break;
+			}
+		}
+
+		private async void BtnAddTag_Clicked(object sender, EventArgs e)
+		{
+			var inputPage = new Popup.EntryPopup("태그를 입력해주세요");
+			inputPage.Disappearing += async (s, evp) =>
+			{
+				var tagstr = inputPage.InputValue;
+				if (tagstr != null)
+				{
+					await App.RunLongTask(() =>
+					{
+						App.instance.core.post.AddTag(m_postingID, tagstr);
+					});
+
+					m_viewModel.myTagItems.Add(new ViewModel.TagItem { tag = tagstr });
+				}
+			};
+
+			await Navigation.PushPopupAsync(inputPage);
+		}
+
+		const string c_tagActionSearch = "이 태그로 검색";
+		const string c_tagActionDelete = "이 태그 삭제";
+
+		private async void myTagEntryView_TagTapped(object sender, ItemTappedEventArgs e)
+		{
+			if (e.Item != null)
+			{
+				var tagitem = e.Item as ViewModel.TagItem;
+
+				var choice = await DisplayActionSheet(string.Format("태그 '{0}' 에 대해서...", tagitem.tag), "취소", null, new [] {c_tagActionSearch, c_tagActionDelete});
+
+				switch(choice)
+				{
+					case c_tagActionSearch:
+						{
+							var cond = new Engine.ClientEngine.PostingLookupCondition { tag = tagitem.tag };
+
+							RespLookupPosting result = null;
+							await App.RunLongTask(() =>
+							{
+								result = App.instance.core.post.LookupPosting(cond);
+							});
+
+							if(result != null)
+							{
+								await Navigation.PushAsync(new PostingListPage(cond, result));
+							}
+						}
+						break;
+
+					case c_tagActionDelete:
+						{
+							await App.RunLongTask(() =>
+							{
+								App.instance.core.post.DeleteTag(m_postingID, tagitem.tag);
+							});
+
+							m_viewModel.myTagItems.Remove(tagitem);
+						}
+						break;
+				}
 			}
 		}
 	}

@@ -63,7 +63,7 @@
                     <Label Text="{Binding detail}" FontSize="16" Margin="0, 0, 0, 10" />
                     
                     <Label Text="내가 작성한 태그" FontSize="12" />
-                    <dltag:TagEntryView TagItems="{Binding myTagItems}" x:Name="myTagEntryView" Margin="5">
+                    <dltag:TagEntryView TagItems="{Binding myTagItems}" x:Name="myTagEntryView" Margin="5" TagTapped="myTagEntryView_TagTapped">
                         <dltag:TagEntryView.TagItemTemplate>
                             <DataTemplate>
                                 <Frame BackgroundColor="#2196F3" OutlineColor="Transparent" Padding="10" HasShadow="false">
@@ -72,7 +72,8 @@
                             </DataTemplate>
                         </dltag:TagEntryView.TagItemTemplate>
                     </dltag:TagEntryView>
-                    
+                    <Button Text="태그 추가" Clicked="BtnAddTag_Clicked" WidthRequest="100" HorizontalOptions="End" />
+
                     <Label Text="다른 사람이 작성한 태그" FontSize="12" />
                     <dltag:TagEntryView TagItems="{Binding otherTagItems}" x:Name="otherTagEntryView" Margin="5">
                         <dltag:TagEntryView.TagItemTemplate>
