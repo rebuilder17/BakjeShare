@@ -7,6 +7,7 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
+            <converter:NullToBoolConverter x:Key="NullToBoolConverter" />
             <converter:ByteArrayToImageConverter x:Key="ByteArrayToImageConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
@@ -61,6 +62,11 @@
 
                 <StackLayout Grid.Row="0" Grid.ColumnSpan="2">
                     <Label Text="{Binding detail}" FontSize="16" Margin="0, 0, 0, 10" />
+
+                    <StackLayout Orientation="Horizontal" Padding="10" IsVisible="{Binding origUrl, Converter={StaticResource NullToBoolConverter}}">
+                        <Label Text="원본 URL" />
+                        <Label x:Name="linkToSource" Text="{Binding origUrl}" TextColor="Blue" />
+                    </StackLayout>
                     
                     <Label Text="내가 작성한 태그" FontSize="12" />
                     <dltag:TagEntryView TagItems="{Binding myTagItems}" x:Name="myTagEntryView" Margin="5" TagTapped="myTagEntryView_TagTapped">

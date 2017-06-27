@@ -34,6 +34,8 @@ namespace BakjeClient
 			
 			public string detail { get; set; }
 
+			public string origUrl { get; set; }
+
 			public ObservableCollection<TagItem> myTagItems { get; set; }
 			public ObservableCollection<TagItem> otherTagItems { get; set; }
 
@@ -50,6 +52,8 @@ namespace BakjeClient
 				author			= posting.author;
 				datetime		= posting.datetime.ToString();
 				detail			= posting.desc;
+
+				origUrl			= posting.sourceURL;
 
 				myTagItems		= new ObservableCollection<TagItem>();
 				foreach (var tag in posting.mytags)
@@ -78,6 +82,29 @@ namespace BakjeClient
 			m_postingID		= postingId;
 			m_viewModel		= new ViewModel(postingData);
 			BindingContext	= m_viewModel;
+
+			if (!string.IsNullOrEmpty(postingData.postingInfo.sourceURL))	// 링크 추가
+			{
+				Uri uri = null;
+
+				try
+				{
+					uri = new Uri(postingData.postingInfo.sourceURL);
+				}
+				catch
+				{ }
+
+				if (uri != null)
+				{
+					var gestureRec = new TapGestureRecognizer();
+					gestureRec.Tapped += (s, e) =>
+					{
+						Device.OpenUri(uri);
+					};
+
+					linkToSource.GestureRecognizers.Add(gestureRec);
+				}
+			}
 		}
 		
 		private void Handle_ItemTapped(object sender, ItemTappedEventArgs e)
