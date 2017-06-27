@@ -50,8 +50,15 @@ namespace BakjeProtocol.Auth
 
 			m_writeLock.WaitOne();							// 쓰기 받고 다른 쓰기는 대기시키기
 
-			m_useridToInfoCache[info.userid]	= info;
-			m_authkeyToInfoCache[info.authkey]	= info;
+			if (info.userid == null)						// fix : 비활성화되어서 null이 된 userid는 걸러내도록
+			{
+				m_authkeyToInfoCache.Remove(info.authkey);
+			}
+			else
+			{
+				m_useridToInfoCache[info.userid]	= info;
+				m_authkeyToInfoCache[info.authkey]	= info;
+			}
 
 			m_writeLock.Set();								// 다른 쓰기 허용하기
 
