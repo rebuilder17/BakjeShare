@@ -35,6 +35,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="xaml\PostingReportDetailPage.xaml.cs">
+      <DependentUpon>PostingReportDetailPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="xaml\UserReportDetailPage.xaml.cs">
+      <DependentUpon>UserReportDetailPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="xaml\BugReportDetailPage.xaml.cs">
+      <DependentUpon>BugReportDetailPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Engine\ClientEngine.Auth.cs" />
     <Compile Include="Engine\ClientEngine.cs" />
     <Compile Include="Engine\ClientEngine.Notice.cs" />
@@ -253,6 +262,24 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="LookupReportPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="xaml\BugReportDetailPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="xaml\UserReportDetailPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="xaml\PostingReportDetailPage.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>

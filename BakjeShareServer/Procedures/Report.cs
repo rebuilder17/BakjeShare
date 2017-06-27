@@ -158,6 +158,21 @@ namespace BakjeShareServer.Procedures
 						reader.Close();
 					}
 
+					// 포스팅 리폿인 경우 추가로 제목까지 읽어온다
+					if (result.type == ReqFileReport.Type.Posting)
+					{
+						var postcmd	= sql.CreateCommand();
+						postcmd.CommandText	= @"select title from postings where idposting = @postid";
+						postcmd.Parameters.AddWithValue("@postid", result.repPostingID);
+
+						using (var reader = postcmd.ExecuteReader())
+						{
+							reader.Read();
+
+							result.repPostingTitle	= reader.GetString("title");
+						}
+					}
+
 					// 응답
 					send.header.code	= BakjeProtocol.Packet.Header.Code.OK;
 					send.SetParameter(result);

@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BakjeClient.PostingReportDetailPage">
+    <ContentPage.Content>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Label Grid.Row="0" Grid.ColumnSpan="2" Text="아래 포스팅을 리폿합니다" FontSize="16" />
+            <Label Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding reportedTitle}" FontSize="20" />
+            <Label Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding title}" FontSize="30" />
+            <Label Grid.Row="3" Grid.Column="0" Text="신고한 유저" />
+            <Label Grid.Row="3" Grid.Column="1" Text="{Binding reporter}" />
+            <Label Grid.Row="4" Grid.ColumnSpan="2" Text="{Binding desc}" FontSize="14" LineBreakMode="CharacterWrap" />
+            <Button Grid.Row="5" Grid.Column="0" Text="포스팅 보기" Clicked="BtnShow_Clicked" />
+            <Button Grid.Row="5" Grid.Column="1" Text="삭제하기" Clicked="BtnDelete_Clicked" />
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

@@ -396,6 +396,7 @@ namespace BakjeProtocol.Parameters
 		public string				longdesc;
 
 		public int								repPostingID;
+		public string							repPostingTitle;
 		public ReqFileReport.PostReportReason	postingRepReason;
 		public string							repUserID;
 		public ReqFileReport.UserReportReason	userRepReason;

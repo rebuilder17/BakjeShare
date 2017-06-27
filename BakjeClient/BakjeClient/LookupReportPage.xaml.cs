@@ -103,12 +103,15 @@ namespace BakjeClient
 					switch (result.type)
 					{
 						case ReqFileReport.Type.Bug:
+							await Navigation.PushAsync(new BugReportDetailPage(data.reportid, result));
 							break;
 
 						case ReqFileReport.Type.Posting:
+							await Navigation.PushAsync(new PostingReportDetailPage(data.reportid, result));
 							break;
 
 						case ReqFileReport.Type.User:
+							await Navigation.PushAsync(new UserReportDetailPage(data.reportid, result));
 							break;
 					}
 				}
