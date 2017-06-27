@@ -83,7 +83,8 @@
                             </DataTemplate>
                         </dltag:TagEntryView.TagItemTemplate>
                     </dltag:TagEntryView>
-                    
+
+                    <Button Text="이 포스팅을..." Clicked="BtnAction_Clicked" />
                 </StackLayout>
             </Grid>
         </ListView.Footer>

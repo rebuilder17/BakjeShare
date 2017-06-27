@@ -87,5 +87,116 @@ namespace BakjeClient
 				contentList.SelectedItem = null;
 			}
 		}
+
+		const string c_actionDelete			= "이 글을 삭제합니다.";
+		const string c_actionUserInfo		= "글쓴이 정보를 봅니다.";
+		const string c_actionReportAuthor	= "글쓴이를 신고합니다.";
+		const string c_actionReportPost		= "포스팅을 신고합니다.";
+		const string c_actionBlindAuthor	= "글쓴이 블라인드 처리";
+		const string c_actionBlindPost		= "포스팅을 블라인드 처리";
+
+		private async void BtnAction_Clicked(object sender, EventArgs e)
+		{
+			var actions = new List<string>();
+
+			if (m_viewModel.author == (string)App.Current.Properties["username"])
+			{
+				actions.Add(c_actionDelete);
+			}
+			else
+			{
+				actions.Add(c_actionUserInfo);
+			}
+			
+			if (App.instance.isAdmin)
+			{
+				actions.Add(c_actionBlindPost);
+				actions.Add(c_actionBlindAuthor);
+			}
+			else
+			{
+				actions.Add(c_actionReportPost);
+				actions.Add(c_actionReportAuthor);
+			}
+
+			var choice = await DisplayActionSheet("무엇을 하시겠습니까?", "취소", null, actions.ToArray());
+
+			switch(choice)
+			{
+				case c_actionUserInfo:
+					{
+						RespUserInfo result = null;
+						await App.RunLongTask(() =>
+						{
+							result = App.instance.core.user.ShowUserInfo(m_viewModel.author);
+						});
+
+						if (result != null)
+						{
+							await Navigation.PushAsync(new UserInfoPage(result));
+						}
+					}
+					break;
+				case c_actionDelete:
+					{
+						var result	= await DisplayAlert("삭제 확인", "정말로 글을 삭제하시겠습니까?", "네", "아니오");
+						if(result)
+						{
+							await App.RunLongTask(() =>
+							{
+								App.instance.core.post.DeletePost(m_postingID);
+							});
+							await DisplayAlert("삭제 완료", "글을 삭제하였습니다.", "확인");
+
+							App.GetMainPage();
+						}
+					}
+					break;
+
+				case c_actionReportPost:
+					{
+						await Navigation.PushAsync(new NewReportPosPage(m_postingID, m_viewModel.title));
+					}
+					break;
+
+				case c_actionReportAuthor:
+					{
+						await Navigation.PushAsync(new NewReportUserPage(m_viewModel.author));
+					}
+					break;
+
+				case c_actionBlindPost:
+					{
+						var result = await DisplayAlert("블라인드 처리", "해당 포스팅을 정말로 블라인드 처리 하시겠습니까? 이 포스팅은 본인과 운영자 외엔 아무도 열람할 수 없게 됩니다.", "네", "아니오");
+						if (result)
+						{
+							await App.RunLongTask(() =>
+							{
+								App.instance.core.post.BlindPost(m_postingID, true);
+							});
+							await DisplayAlert("블라인드 처리", "해당 포스팅이 블라인드 처리 되었습니다.", "확인");
+
+							App.GetMainPage();
+						}
+					}
+					break;
+
+				case c_actionBlindAuthor:
+					{
+						var result = await DisplayAlert("블라인드 처리", "해당 유저를 정말로 블라인드 처리 하시겠습니까? 유저가 작성한 모든 포스팅이 블라인드 처리된 것처럼 취급되며 해당 유저는 더이상 로그인할 수 없게 됩니다.", "네", "아니오");
+						if (result)
+						{
+							await App.RunLongTask(() =>
+							{
+								App.instance.core.user.BlindUser(m_viewModel.author, true);
+							});
+							await DisplayAlert("블라인드 처리", "해당 유저가 블라인드 처리 되었습니다.", "확인");
+
+							App.GetMainPage();
+						}
+					}
+					break;
+			}
+		}
 	}
 }

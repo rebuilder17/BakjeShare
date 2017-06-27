@@ -33,7 +33,7 @@ namespace BakjeShareServer.Procedures
 					cmd.Parameters.AddWithValue("@reporterid", reporterID);
 					cmd.Parameters.AddWithValue("@report_type", typestr);
 					cmd.Parameters.AddWithValue("@shortdesc", recv.param.shortdesc);
-					cmd.Parameters.AddWithValue("@longdesc", recv.param.shortdesc);
+					cmd.Parameters.AddWithValue("@longdesc", recv.param.longdesc);
 					cmd.ExecuteNonQuery();
 					
 					if (recv.param.type == ReqFileReport.Type.Posting)						// 포스팅 리폿인 경우, 추가 정보

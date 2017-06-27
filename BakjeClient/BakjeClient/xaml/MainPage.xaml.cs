@@ -102,6 +102,35 @@ namespace BakjeClient
 				}
 			});
 
+			AddAsyncAction("myinfo", async () =>
+			{
+				RespUserInfo result = null;
+				await App.RunLongTask(() =>
+				{
+					result = App.instance.core.user.ShowUserInfo((string)App.Current.Properties["username"]);
+				});
+
+				if (result != null)
+				{
+					Detail = new NavigationPage(new UserInfoPage(result));
+				}
+			});
+
+			AddAsyncAction("recentReports", async () =>
+			{
+				RespLookupReport result = null;
+
+				await App.RunLongTask(() =>
+				{
+					result = App.instance.core.report.LookupReport();
+				});
+
+				if (result != null)
+				{
+					Detail = new NavigationPage(new LookupReportPage(result));
+				}
+			});
+
 			AddAsyncAction("logout", async () =>
 			{
 				await Task.Run(() =>

@@ -30,7 +30,12 @@
             <Label Grid.Row="0" Grid.Column="0" Text="제목" />
             <Entry Grid.Row="0" Grid.Column="1" Text="{Binding title, Mode=OneWayToSource}" />
 
-            <Label Grid.Row="1" Grid.ColumnSpan="2" Text="내용" />
+            <Label Grid.Row="1" Grid.Column="0" Text="내용" />
+            <StackLayout Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalOptions="End">
+                <Label Text="비밀글 설정" />
+                <Switch IsToggled="{Binding isPrivate, Mode=OneWayToSource}" />
+            </StackLayout>
+            
             <Editor Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding desc, Mode=OneWayToSource}" />
 
             <Label Grid.Row="3" Grid.Column="0" Text="원본 URL" />

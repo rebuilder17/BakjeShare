@@ -39,7 +39,23 @@
     <Compile Include="Engine\ClientEngine.cs" />
     <Compile Include="Engine\ClientEngine.Notice.cs" />
     <Compile Include="Engine\ClientEngine.Post.cs" />
+    <Compile Include="Engine\ClientEngine.Report.cs" />
     <Compile Include="Engine\ClientEngine.User.cs" />
+    <Compile Include="LookupReportPage.xaml.cs">
+      <DependentUpon>LookupReportPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="xaml\NewReportPosPage.xaml.cs">
+      <DependentUpon>NewReportPosPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="xaml\NewReportUserPage.xaml.cs">
+      <DependentUpon>NewReportUserPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="xaml\UserInfoPage.xaml.cs">
+      <DependentUpon>UserInfoPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="xaml\NewBugReportPage.xaml.cs">
+      <DependentUpon>NewBugReportPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="xaml\NewNoticePage.xaml.cs">
       <DependentUpon>NewNoticePage.xaml</DependentUpon>
     </Compile>
@@ -207,6 +223,36 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="xaml\NewNoticePage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="xaml\NewBugReportPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="xaml\UserInfoPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="xaml\NewReportUserPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="xaml\NewReportPosPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="LookupReportPage.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>

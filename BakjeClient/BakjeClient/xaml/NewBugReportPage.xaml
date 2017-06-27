@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BakjeClient.NewBugReportPage">
+    <ContentPage.Content>
+        <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Label Grid.Row="0" Grid.Column="0" Text="제목" />
+            <Entry Grid.Row="0" Grid.Column="1" Text="{Binding title, Mode=OneWayToSource}" />
+
+            <Label Grid.Row="1" Grid.ColumnSpan="2" Text="내용" />
+            <Editor Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding desc, Mode=OneWayToSource}" />
+
+            <Button Grid.Row="3" Grid.ColumnSpan="2" Text="업로드" Clicked="BtnSend_Clicked" />
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

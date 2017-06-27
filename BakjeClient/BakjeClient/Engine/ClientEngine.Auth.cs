@@ -23,7 +23,7 @@ namespace BakjeClient.Engine
 		{
 			AuthCheckResult CheckAuth();
 			void ClearAuth();
-			bool RequestLogin(string userid, string password);
+			RespLogin.Status RequestLogin(string userid, string password);
 		}
 
 		protected class Auth : AutoProcedurePool, IAuth
@@ -76,9 +76,9 @@ namespace BakjeClient.Engine
 				return result;
 			}
 
-			public bool RequestLogin(string userid, string password)
+			public RespLogin.Status RequestLogin(string userid, string password)
 			{
-				var result = false;
+				var result = RespLogin.Status.NoUserInfo;
 
 				DoRequest<ReqLogin, RespLogin>((sendObj) =>
 				{
@@ -86,17 +86,13 @@ namespace BakjeClient.Engine
 				},
 					(recvObj) =>
 					{
+						result	= recvObj.param.status;
+
 						if (recvObj.header.code == Packet.Header.Code.OK)			// 로그인 성공
 						{
 							var key	= recvObj.param.authKey;
 							var ut	= recvObj.param.userType;
 							authClient.SetNew(key, ut);
-
-							result = true;
-						}
-						else
-						{															// 로그인 실패
-							result = false;
 						}
 					});
 

@@ -20,14 +20,26 @@ namespace BakjeClient
 				public string title { get; set; }
 				public string detail { get; set; }
 
+				public string author { get; set; }
+
 				public int postid { get; set; }
+
+				public bool isPrivate { get; set; }
+				public bool isBlinded { get; set; }
 
 				public Item(RespLookupPosting.Entry entry)
 				{
+					isPrivate	= entry.isPrivate;
+					isBlinded	= entry.isBlinded;
+
 					postid	= entry.postID;
 
-					title	= entry.title;
+					title	= isBlinded? "(블라인드 처리된 글입니다.)" : entry.title;
+					if (isPrivate)
+						title = "[비밀글] " + title;
+
 					detail	= string.Format("작성자 : {0}    작성일시 : {1}", entry.author, entry.postingTime.ToString());
+					author	= entry.author;
 				}
 			}
 
@@ -116,22 +128,30 @@ namespace BakjeClient
 			if (e.Item != null)
 			{
 				var data = postList.SelectedItem as ViewModel.Item;
-				Engine.ClientEngine.PostingDetail posting = null;
-
 				postList.SelectedItem = null;
 
-				await App.RunLongTask(() =>
+				// 블라인드 처리된 글은 본인이거나 운영자 아니면 못봄
+				if (data.isBlinded && !App.instance.isAdmin && data.author != (string)App.Current.Properties["username"])
 				{
-					posting	= App.instance.core.post.ShowPosting(data.postid);
-				});
-
-				if (posting == null)
-				{
-					await DisplayAlert("오류", "포스팅을 읽어올 수 없습니다.", "확인");
+					await DisplayAlert("오류", "블라인드 처리된 글은 읽을 수 없습니다.", "확인");
 				}
 				else
 				{
-					await Navigation.PushAsync(new PostingDetailPage(data.postid, posting));
+					Engine.ClientEngine.PostingDetail posting = null;
+
+					await App.RunLongTask(() =>
+					{
+						posting	= App.instance.core.post.ShowPosting(data.postid);
+					});
+
+					if (posting == null)
+					{
+						await DisplayAlert("오류", "포스팅을 읽어올 수 없습니다.", "확인");
+					}
+					else
+					{
+						await Navigation.PushAsync(new PostingDetailPage(data.postid, posting));
+					}
 				}
 			}
 		}
