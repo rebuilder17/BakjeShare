@@ -8,7 +8,7 @@ using Xamarin.Forms;
 
 namespace BakjeClient.ValueConverters
 {
-	public class ByteArrayToImageFieldConverter : IValueConverter
+	public class ByteArrayToImageConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
 		{

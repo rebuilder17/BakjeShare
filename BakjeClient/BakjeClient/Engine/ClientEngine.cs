@@ -208,6 +208,7 @@ namespace BakjeClient.Engine
 		public IAuth auth { get; private set; }
 		public IUser user { get; private set; }
 		public IPost post { get; private set; }
+		public INotice notice { get; private set; }
 
 
 		public ClientEngine()
@@ -221,6 +222,7 @@ namespace BakjeClient.Engine
 			auth			= new Auth(this);
 			user			= new User(this);
 			post			= new Post(this);
+			notice			= new Notice(this);
 		}
 
 		/// <summary>

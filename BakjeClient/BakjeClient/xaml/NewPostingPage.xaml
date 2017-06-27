@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converter="clr-namespace:BakjeClient.ValueConverters"
+             xmlns:tlsv="clr-namespace:TitiusLabs.Forms.Controls"
+             x:Class="BakjeClient.NewPostingPage">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converter:ByteArrayToImageConverter x:Key="ByteArrayToImageConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
+    <ContentPage.Content>
+        <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Label Grid.Row="0" Grid.Column="0" Text="제목" />
+            <Entry Grid.Row="0" Grid.Column="1" Text="{Binding title, Mode=OneWayToSource}" />
+
+            <Label Grid.Row="1" Grid.ColumnSpan="2" Text="내용" />
+            <Editor Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding desc, Mode=OneWayToSource}" />
+
+            <Label Grid.Row="3" Grid.Column="0" Text="원본 URL" />
+            <Entry Grid.Row="3" Grid.Column="1" Text="{Binding originalURL, Mode=OneWayToSource}" />
+
+            <Label Grid.Row="4" Grid.Column="0" Text="이미지" />
+            <Button Grid.Row="4" Grid.Column="1" Text="추가..." Clicked="BtnAddImage_Clicked" />
+            
+            <Grid Grid.Row="5" Grid.ColumnSpan="2" HeightRequest="66">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+
+                <tlsv:TLScrollView Grid.Row="0" Grid.Column="0" x:Name="imageList" Orientation="Horizontal" HeightRequest="66" ItemsSource="{Binding images, Mode=TwoWay}">
+                    <tlsv:TLScrollView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <Image Source="{Binding imageOriginal, Converter={StaticResource ByteArrayToImageConverter}}" Aspect="AspectFill" WidthRequest="60" Margin="0, 0, 5, 0" BackgroundColor="AliceBlue" />
+                            </ViewCell>
+                        </DataTemplate>
+                    </tlsv:TLScrollView.ItemTemplate>
+                </tlsv:TLScrollView>
+            </Grid>
+            
+
+            <Button Grid.Row="6" Grid.ColumnSpan="2" Text="업로드" Clicked="BtnSend_Clicked" />
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

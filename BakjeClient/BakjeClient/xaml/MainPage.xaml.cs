@@ -83,6 +83,24 @@ namespace BakjeClient
 					Detail = new NavigationPage(new PostingListPage(null, result));
 				}
 			});
+			
+			AddAsyncAction("notice", async () =>
+			{
+				RespLookupNotice result = null;
+				await App.RunLongTask(() =>
+				{
+					result = App.instance.core.notice.LookupNotice();
+				});
+
+				if (result == null)
+				{
+					await DisplayAlert("오류", "포스팅을 읽어올 수 없습니다.", "확인");
+				}
+				else
+				{
+					Detail = new NavigationPage(new NoticeListPage(result));
+				}
+			});
 
 			AddAsyncAction("logout", async () =>
 			{

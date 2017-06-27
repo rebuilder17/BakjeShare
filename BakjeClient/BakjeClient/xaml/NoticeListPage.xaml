@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BakjeClient.NoticeListPage">
+    
+    <ListView x:Name="postList" ItemsSource="{Binding items}"
+            ItemTapped="Handle_ItemTapped"
+            CachingStrategy="RecycleElement" HasUnevenRows="True">
+
+        <ListView.ItemTemplate>
+            <DataTemplate>
+                <ViewCell>
+                    <StackLayout Margin="0, 5, 0, 5">
+                        <Label Text="{Binding title}" Style="{DynamicResource ListItemTextStyle}" />
+                        <Label Text="{Binding detail}" Style="{DynamicResource ListItemDetailTextStyle}"/>
+                    </StackLayout>
+                </ViewCell>
+            </DataTemplate>
+        </ListView.ItemTemplate>
+
+        <ListView.Header>
+            <StackLayout Margin="0, 0, 0, 5">
+                <Label FontSize="30" Text="공지 사항" />
+            </StackLayout>
+        </ListView.Header>
+        <ListView.Footer>
+            <Grid Margin="0, 10, 0, 0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
+
+                <Button IsVisible="{Binding canGoPrev}" Grid.Row="0" Grid.Column="0" Text="&lt; 이전" FontSize="20" HorizontalOptions="Center" />
+                <Label Text="{Binding pageStatus}" Grid.Row="0" Grid.Column="1" FontSize="20" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" HorizontalOptions="Fill" />
+                <Button IsVisible="{Binding canGoNext}" Grid.Row="0" Grid.Column="2" Text="다음 &gt;" FontSize="20" HorizontalOptions="Center" />
+            </Grid>
+        </ListView.Footer>
+    </ListView>
+</ContentPage>

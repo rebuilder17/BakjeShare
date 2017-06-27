@@ -7,17 +7,28 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
-            <converter:ByteArrayToImageFieldConverter x:Key="ByteArrayToImageFieldConverter" />
+            <converter:ByteArrayToImageConverter x:Key="ByteArrayToImageConverter" />
         </ResourceDictionary>
     </ContentPage.Resources>
     
     <ListView x:Name="contentList" ItemsSource="{Binding images}"
             ItemTapped="Handle_ItemTapped"
-            CachingStrategy="RecycleElement" HasUnevenRows="True">
+            CachingStrategy="RecycleElement" HasUnevenRows="True" RowHeight="-1">
 
         <ListView.ItemTemplate>
             <DataTemplate>
-                <ImageCell ImageSource="{Binding image, Converter=ByteArrayToImageFieldConverter}" />
+                <ViewCell>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Image Grid.Row="0" Grid.Column="0" Source="{Binding image, Converter={StaticResource ByteArrayToImageConverter}}" Aspect="AspectFill"/>
+                    </Grid>
+                </ViewCell>
             </DataTemplate>
         </ListView.ItemTemplate>
 

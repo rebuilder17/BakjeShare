@@ -6,6 +6,7 @@ using System.Text;
 using Xamarin.Forms;
 using Rg.Plugins.Popup.Extensions;
 using System.Threading.Tasks;
+using Plugin.Media;
 
 namespace BakjeClient
 {
@@ -17,6 +18,11 @@ namespace BakjeClient
 		//NavigationPage	m_navPage;
 		Popup.LoadingPopup	m_loadingPopup;
 
+		public bool isAdmin
+		{
+			get { return core.authLevel == BakjeProtocol.Auth.UserType.Administrator; }
+		}
+
 		public App()
 		{
 			instance	= this;
@@ -24,9 +30,11 @@ namespace BakjeClient
 			InitializeComponent();
 		}
 
-		protected override void OnStart()
+		protected override async void OnStart()
 		{
 			// Handle when your app starts
+
+			await CrossMedia.Current.Initialize();
 
 			core		= new Engine.ClientEngine();
 			core.Initialize();

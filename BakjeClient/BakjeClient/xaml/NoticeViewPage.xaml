@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:BakjeClient"
+             x:Class="BakjeClient.NoticeViewPage">
+    <ContentPage.Content>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Label Grid.Row="0" Grid.Column="0" Text="{Binding title}" FontSize="30" />
+            <Label Grid.Row="1" Grid.Column="0" Text="{Binding desc}" FontSize="14" LineBreakMode="CharacterWrap" />
+            <Button Grid.Row="2" Grid.Column="0" Text="삭제하기 (관리자)" IsVisible="{Binding isAdmin, Source={x:Static local:App.instance}}" Clicked="BtnDelete_Clicked" />
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

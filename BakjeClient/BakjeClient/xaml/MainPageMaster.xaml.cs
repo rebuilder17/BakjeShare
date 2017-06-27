@@ -31,9 +31,19 @@ namespace BakjeClient
 
 			public MainPageMasterViewModel()
 			{
+				var isAdmin	= App.instance.core.authLevel == BakjeProtocol.Auth.UserType.Administrator;
+
 				MenuItems = new ObservableCollection<MainPageMenuItem>();
 
 				MenuItems.Add(new MainPageMenuItem { Id = "recentPostings", Title = "최근 박제 보기" });
+				MenuItems.Add(new MainPageMenuItem { Title = "새 박제 올리기", TargetType = typeof(NewPostingPage) });
+				MenuItems.Add(new MainPageMenuItem { Id = "notice", Title = "공지사항" });
+				
+				if (isAdmin)
+				{
+					MenuItems.Add(new MainPageMenuItem { Title = "새 공지 작성", TargetType = typeof(NewNoticePage) });
+				}
+
 				MenuItems.Add(new MainPageMenuItem { Id = "logout", Title = "로그아웃" });
 			}
 
