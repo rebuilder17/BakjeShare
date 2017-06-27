@@ -46,7 +46,7 @@ CREATE TABLE `notice` (
   `description` text,
   `datetime` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`idnotice`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -68,7 +68,7 @@ CREATE TABLE `postings` (
   PRIMARY KEY (`idposting`),
   KEY `authorid_idx` (`authorid`),
   CONSTRAINT `authorid` FOREIGN KEY (`authorid`) REFERENCES `user` (`iduser`) ON DELETE NO ACTION ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -85,7 +85,7 @@ CREATE TABLE `report` (
   `shortdesc` varchar(128) NOT NULL,
   `longdesc` text,
   PRIMARY KEY (`idreport`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -134,11 +134,11 @@ DROP TABLE IF EXISTS `screenshots`;
 CREATE TABLE `screenshots` (
   `idscreenshot` int(11) NOT NULL AUTO_INCREMENT,
   `postingid` int(11) NOT NULL,
-  `imagedata` blob NOT NULL,
+  `imagedata` mediumblob NOT NULL,
   PRIMARY KEY (`idscreenshot`),
   KEY `posting_idx` (`postingid`),
   CONSTRAINT `screenshot_to_posting` FOREIGN KEY (`postingid`) REFERENCES `postings` (`idposting`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -158,7 +158,7 @@ CREATE TABLE `tags` (
   KEY `tagger_idx` (`taguserid`),
   CONSTRAINT `posting` FOREIGN KEY (`postingid`) REFERENCES `postings` (`idposting`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `tagger` FOREIGN KEY (`taguserid`) REFERENCES `user` (`iduser`) ON DELETE NO ACTION ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -195,4 +195,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-06-01 13:36:35
+-- Dump completed on 2017-06-28  6:49:35
