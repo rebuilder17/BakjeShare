@@ -20,13 +20,18 @@ namespace BakjeClient
 				public string title { get; set; }
 				public string detail { get; set; }
 
+				public int postid { get; set; }
+
 				public Item(RespLookupPosting.Entry entry)
 				{
+					postid	= entry.postID;
+
 					title	= entry.title;
 					detail	= string.Format("작성자 : {0}    작성일시 : {1}", entry.author, entry.postingTime.ToString());
 				}
 			}
 
+			public string title { get; set; }
 			public string searchCondition { get; set; }
 			public string pageStatus { get; set; }
 
@@ -35,9 +40,9 @@ namespace BakjeClient
 
 			public ObservableCollection<Item> items { get; }
 
-			static string MakeConditionText(Engine.ClientEngine.PostingLookupCondition searchCond)
+			void MakeConditionText(Engine.ClientEngine.PostingLookupCondition searchCond)
 			{
-				var strBuilder		= new System.Text.StringBuilder("검색 조건 -");
+				var strBuilder		= new System.Text.StringBuilder();
 				var anySearchCond	= false;
 
 				var titleAvail		= !string.IsNullOrWhiteSpace(searchCond.title);
@@ -74,12 +79,14 @@ namespace BakjeClient
 					anySearchCond	= true;
 				}
 
-				return anySearchCond ? strBuilder.ToString() : "최근 글";
+				title			= anySearchCond ? "검색 결과" : "최근 글";
+				searchCondition	= anySearchCond ? strBuilder.ToString() : null;
 			}
 
 			public ViewModel(Engine.ClientEngine.PostingLookupCondition searchCond, RespLookupPosting lookup)
 			{
-				searchCondition	= MakeConditionText(searchCond ?? Engine.ClientEngine.PostingLookupCondition.empty);
+				MakeConditionText(searchCond ?? Engine.ClientEngine.PostingLookupCondition.empty);
+
 				pageStatus		= string.Format("{0}/{1}", lookup.currentPage + 1, lookup.totalPage);
 
 				canGoPrev		= lookup.currentPage > 0;
@@ -104,11 +111,28 @@ namespace BakjeClient
 			BindingContext		= m_viewModel;
 		}
 
-		private void Handle_ItemTapped(object sender, ItemTappedEventArgs e)
+		private async void Handle_ItemTapped(object sender, ItemTappedEventArgs e)
 		{
 			if (e.Item != null)
 			{
+				var data = postList.SelectedItem as ViewModel.Item;
+				Engine.ClientEngine.PostingDetail posting = null;
+
 				postList.SelectedItem = null;
+
+				await App.RunLongTask(() =>
+				{
+					posting	= App.instance.core.post.ShowPosting(data.postid);
+				});
+
+				if (posting == null)
+				{
+					await DisplayAlert("오류", "포스팅을 읽어올 수 없습니다.", "확인");
+				}
+				else
+				{
+					await Navigation.PushAsync(new PostingDetailPage(data.postid, posting));
+				}
 			}
 		}
 	}

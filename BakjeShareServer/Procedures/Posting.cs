@@ -135,7 +135,7 @@ namespace BakjeShareServer.Procedures
 						sendParam.author	= reader.GetString("authorid");
 						sendParam.title		= reader.GetString("title");
 						sendParam.desc		= reader.GetString("description");
-						sendParam.sourceURL	= reader.GetString("sourceurl");
+						sendParam.sourceURL	= reader.IsDBNull(reader.GetOrdinal("sourceurl")) ? "" : reader.GetString("sourceurl");
 						sendParam.datetime	= reader.GetDateTime("datetime");
 						sendParam.isPrivate	= reader.GetBoolean("is_private");
 						sendParam.isBlinded	= reader.GetBoolean("is_blinded");
@@ -149,7 +149,7 @@ namespace BakjeShareServer.Procedures
 					tagcmd.Parameters.AddWithValue("@myid", myid);
 					tagcmd.Parameters.AddWithValue("@postid", postid);
 
-					using (var reader = cmd.ExecuteReader())
+					using (var reader = tagcmd.ExecuteReader())
 					{
 						var mytags		= new List<string>();
 						var othertags	= new List<string>();

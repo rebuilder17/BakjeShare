@@ -17,7 +17,7 @@ namespace BakjeClient.Engine
 			void AddTag(int postID, string tag);
 			void DeleteTag(int postID, string tag);
 			RespLookupPosting LookupPosting(PostingLookupCondition condition, int page = 0, int rowperpage = 20);
-			RespShowPosting ShowPosting(int postid);
+			PostingDetail ShowPosting(int postid);
 		}
 
 		public class PostingLookupCondition
@@ -28,6 +28,12 @@ namespace BakjeClient.Engine
 			public string desc;
 			public string user;
 			public string tag;
+		}
+
+		public class PostingDetail
+		{
+			public RespShowPosting		postingInfo;
+			public ICollection<byte[]>	imageArray;
 		}
 
 		protected class Post : AutoProcedurePool, IPost
@@ -155,9 +161,9 @@ namespace BakjeClient.Engine
 				return result;
 			}
 
-			public RespShowPosting ShowPosting(int postid)
+			public PostingDetail ShowPosting(int postid)
 			{
-				RespShowPosting result = null;
+				PostingDetail result = null;
 
 				DoRequest<ReqShowPosting, RespShowPosting>(
 					(send) =>
@@ -166,7 +172,23 @@ namespace BakjeClient.Engine
 					},
 					(recv) =>
 					{
-						result = recv.param;
+						if (recv.param != null)
+						{
+							result				= new PostingDetail();
+							result.postingInfo	= recv.param;
+
+							var imageList		= new List<byte[]>();
+							for (var i = 0; i < recv.binaryDataCount; i++)
+							{
+								imageList.Add(recv.GetBinaryData(i));
+							}
+
+							result.imageArray	= imageList;
+						}
+						else
+						{
+
+						}
 					});
 
 				return result;

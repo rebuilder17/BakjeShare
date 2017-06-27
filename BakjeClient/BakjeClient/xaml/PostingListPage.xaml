@@ -1,29 +1,38 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converter="clr-namespace:BakjeClient.ValueConverters"
              x:Class="BakjeClient.PostingListPage">
-  <ListView x:Name="postList" ItemsSource="{Binding items}"
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converter:NullToBoolConverter x:Key="NullToBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ListView x:Name="postList" ItemsSource="{Binding items}"
             ItemTapped="Handle_ItemTapped"
-            CachingStrategy="RecycleElement">
+            CachingStrategy="RecycleElement" HasUnevenRows="True">
 
         <ListView.ItemTemplate>
             <DataTemplate>
                 <ViewCell>
-                    <StackLayout>
-                        <Label Text="{Binding title}" 
-                   Style="{DynamicResource ListItemTextStyle}" />
-                        <Label Text="{Binding detail}" 
-                   Style="{DynamicResource ListItemDetailTextStyle}"/>
+                    <StackLayout Margin="0, 5, 0, 5">
+                        <Label Text="{Binding title}" Style="{DynamicResource ListItemTextStyle}" />
+                        <Label Text="{Binding detail}" Style="{DynamicResource ListItemDetailTextStyle}"/>
                     </StackLayout>
                 </ViewCell>
             </DataTemplate>
         </ListView.ItemTemplate>
-      
+
         <ListView.Header>
-            <Label FontSize="30" Text="{Binding searchCondition}" />
+            <StackLayout Margin="0, 0, 0, 5">
+                <Label FontSize="30" Text="{Binding title}" />
+                <Label FontSize="12" Text="{Binding searchCondition}" TextColor="Gray" Margin="5" IsVisible="{Binding searchCondition, Converter={StaticResource NullToBoolConverter}}" />
+            </StackLayout>
         </ListView.Header>
         <ListView.Footer>
-            <Grid>
+            <Grid Margin="0, 10, 0, 0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="50" />
                 </Grid.RowDefinitions>
