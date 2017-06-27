@@ -53,6 +53,8 @@
     <AotAssemblies>false</AotAssemblies>
     <EnableLLVM>false</EnableLLVM>
     <BundleAssemblies>false</BundleAssemblies>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <EnableProguard>true</EnableProguard>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DLToolkit.Forms.Controls.FlowListView, Version=1.0.6237.31064, Culture=neutral, processorArchitecture=MSIL">
